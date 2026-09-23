@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>🐍 Snake</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Vazirmatn:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  html, body {
+    height: 100%;
+    margin: 0;
+    overscroll-behavior: none;
+  }
+  body {
+    font-family: 'Vazirmatn', 'Press Start 2P', system-ui, -apple-system, sans-serif;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+  .px-font { font-family: 'Press Start 2P', 'Vazirmatn', monospace; }
+
+  /* ⬇️ حیاتی‌ترین خط برای موبایل: جلوگیری از اسکرول/زوم هنگام سوایپ */
+  #stage { touch-action: none; }
+
+  #game {
+    display: block;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .btn3d { box-shadow: 0 4px 0 0 rgba(0,0,0,.35); }
+  .btn3d:active { transform: translateY(2px); box-shadow: 0 2px 0 0 rgba(0,0,0,.35); }
+  @keyframes pulse-soft { 0%,100% { opacity: 1; } 50% { opacity: .55; } }
+  .pulse { animation: pulse-soft 1.4s ease-in-out infinite; }
+
+  .wrap { min-height: 100vh; min-height: 100dvh; }
+</style>
+</head>
+<body class="wrap bg-gradient-to-b from-slate-800 via-slate-900 to-black flex flex-col items-center justify-center p-2 md:p-4 text-slate-100">
+
+<div class="w-full max-w-[460px] bg-slate-800/70 backdrop-blur rounded-3xl p-3 shadow-2xl border-4 border-slate-700 flex flex-col items-center">
+
+  <!-- ═══ هدر ═══ -->
+  <div class="w-full flex justify-between items-center mb-2 px-1">
+    <div class="flex items-center gap-1.5 text-emerald-400">
+      <span class="text-base">🐍</span>
+      <span class="px-font text-[9px] font-bold tracking-wide">SNAKE</span>
+    </div>
+    <div class="flex gap-2 bg-slate-900/70 px-2 py-1 rounded-lg border border-slate-700 text-[10px] text-emerald-300">
+      <div class="px-font">HI <span id="best" class="text-amber-300">000</span></div>
+      <div class="px-font">LEN <span id="len" class="text-emerald-400">3</span></div>
+      <div class="px-font">★ <span id="score" class="text-emerald-300">000</span></div>
+    </div>
+  </div>
+
+  <!-- ═══ صحنه ═══ -->
+  <div id="stage" class="relative w-full aspect-square rounded-2xl overflow-hidden border-2 border-slate-700">
+    <canvas id="game"></canvas>
+
+    <!-- استارت -->
+    <div id="startModal" class="absolute inset-0 bg-black/35 backdrop-blur-[2px] flex items-center justify-center p-4">
+      <div class="bg-slate-900/95 px-5 py-5 rounded-2xl shadow-xl border border-emerald-500/30 text-center max-w-[250px]">
+        <div class="text-3xl mb-2">🐍</div>
+        <p class="text-[12px] font-bold text-emerald-400 mb-3 leading-relaxed">با کلیدهای جهت یا سوایپ حرکت کن</p>
+        <div class="flex flex-col gap-2 text-[10px] text-slate-400">
+          <div class="flex gap-1 justify-center px-font text-[7px]">
+            <span class="bg-slate-800 px-2 py-1 rounded border border-slate-700">↑ W</span>
+            <span class="bg-slate-800 px-2 py-1 rounded border border-slate-700">← A</span>
+            <span class="bg-slate-800 px-2 py-1 rounded border border-slate-700">↓ S</span>
+            <span class="bg-slate-800 px-2 py-1 rounded border border-slate-700">→ D</span>
+          </div>
+          <div class="text-emerald-400 pulse">برای شروع ضربه بزن</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- پایان -->
+    <div id="overModal" class="hidden absolute inset-0 bg-slate-900/70 backdrop-blur-sm flex-col items-center justify-center text-white p-4">
+      <div class="text-3xl mb-2">💀</div>
+      <h2 class="px-font text-base text-emerald-300 mb-1 font-bold tracking-wider drop-shadow">GAME OVER</h2>
+      <p id="reason" class="text-[12px] text-slate-300 mb-3">به دیوار خوردی!</p>
+      <div class="flex gap-4 text-[12px] text-white/85 mb-5">
+        <div>طول: <span id="finalLen" class="text-amber-300 px-font text-[11px]">0</span></div>
+        <div>امتیاز: <span id="finalScore" class="text-amber-300 px-font text-[11px]">0</span></div>
+      </div>
+      <button id="restartBtn" class="btn3d bg-emerald-500 hover:bg-emerald-600 text-slate-900 font-bold py-3 px-6 rounded-xl transition text-[13px]">
+        دوباره بازی کن
+      </button>
+    </div>
+  </div>
+
+  <!-- راهنما -->
+  <div class="w-full mt-3 flex justify-center gap-3 text-[10px] text-slate-400">
+    <span class="bg-slate-900/60 px-2 py-1 rounded border border-slate-700">⬆ ⬇ ⬅ ➡ / WASD</span>
+    <span class="bg-slate-900/60 px-2 py-1 rounded border border-slate-700">سوایپ (موبایل)</span>
+  </div>
+
+  <div class="mt-2 text-[9px] text-slate-500">HTML5 Canvas + Web Audio — بدون فایل خارجی</div>
+</div>
+
+<script>
+(function () {
+'use strict';
+
+/* ══════════════════════════════════════════
+   ۱) بوم و شبکه
+   ══════════════════════════════════════════ */
+const canvas = document.getElementById('game');
+const ctx    = canvas.getContext('2d');
+
+const GRID_W = 24;
+const GRID_H = 24;
+const CELL   = 20;
+const W = GRID_W * CELL;    // 480 (مختصات منطقی)
+const H = GRID_H * CELL;    // 480
+
+/* 🔧 جدید: اندازه‌ی واقعی بوم رو با اندازه‌ی نمایشی هماهنگ می‌کنه
+   تا روی هر موبایلی (و هر DPR) شارپ و درست دیده بشه. */
+let viewScale = 1;
+function resizeCanvas() {
+  const rect = canvas.getBoundingClientRect();
+  if (rect.width < 2 || rect.height < 2) return;
+
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+  const pw = Math.round(rect.width  * dpr);
+  const ph = Math.round(rect.height * dpr);
+
+  if (canvas.width !== pw || canvas.height !== ph) {
+    canvas.width  = pw;
+    canvas.height = ph;
+  }
+  const sx = (rect.width  / W) * dpr;
+  const sy = (rect.height / H) * dpr;
+  ctx.setTransform(sx, 0, 0, sy, 0, 0);
+  viewScale = rect.width / W;
+}
+window.addEventListener('resize', resizeCanvas);
+window.addEventListener('orientationchange', function () { setTimeout(resizeCanvas, 250); });
+if (window.ResizeObserver) { new ResizeObserver(resizeCanvas).observe(canvas); }
+
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+    if (typeof r === 'number') r = [r, r, r, r];
+    const [tl, tr, br, bl] = r;
+    this.moveTo(x + tl, y);
+    this.arcTo(x + w, y, x + w, y + h, tr);
+    this.arcTo(x + w, y + h, x, y + h, br);
+    this.arcTo(x, y + h, x, y, bl);
+    this.arcTo(x, y, x + w, y, tl);
+    this.closePath();
+    return this;
+  };
+}
+
+/* ══════════════════════════════════════════
+   ۲) DOM
+   ══════════════════════════════════════════ */
+const $score      = document.getElementById('score');
+const $best       = document.getElementById('best');
+const $len        = document.getElementById('len');
+const $start      = document.getElementById('startModal');
+const $over       = document.getElementById('overModal');
+const $finalLen   = document.getElementById('finalLen');
+const $finalScore = document.getElementById('finalScore');
+const $reason     = document.getElementById('reason');
+const $stage      = document.getElementById('stage');
+const $restart    = document.getElementById('restartBtn');
+
+/* ══════════════════════════════════════════
+   ۳) ثابت‌ها
+   ══════════════════════════════════════════ */
+const TAU = Math.PI * 2;
+const READY = 0, PLAY = 1, DYING = 2, OVER = 3;
+const HEAD_COL = [184, 245, 208];
+const TAIL_COL = [22, 128, 63];
+
+/* ══════════════════════════════════════════
+   ۴) وضعیت
+   ══════════════════════════════════════════ */
+let state = READY;
+let snake = [];
+let oldSnake = [];
+let dir = { x: 1, y: 0 };
+let pendingDirs = [];
+let food = { x: 0, y: 0 };
+
+let tickInterval = 130;
+let tickAcc = 0;
+let speedStage = 0;
+
+let score = 0;
+let applesEaten = 0;
+let best = Number(localStorage.getItem('snake_best')) || 0;
+
+let shake = 0;
+let chomp = 0;
+let whiteFlash = 0;
+let dyingT = 0;
+let frame = 0;
+let deathReason = '';
+
+let particles = [];
+let floats = [];
+
+$best.textContent = String(best).padStart(3, '0');
+
+/* ══════════════════════════════════════════
+   ۵) ابزار
+   ══════════════════════════════════════════ */
+function lerp(a, b, t) { return a + (b - a) * t; }
+function rand(a, b) { return a + Math.random() * (b - a); }
+function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+function pad(n, l) { return String(Math.floor(n)).padStart(l, '0'); }
+function lerpRgb(c1, c2, t) {
+  const r = (c1[0] + (c2[0] - c1[0]) * t) | 0;
+  const g = (c1[1] + (c2[1] - c1[1]) * t) | 0;
+  const b = (c1[2] + (c2[2] - c1[2]) * t) | 0;
+  return 'rgb(' + r + ',' + g + ',' + b + ')';
+}
+
+/* ══════════════════════════════════════════
+   ۶) صدا
+   ══════════════════════════════════════════ */
+let actx = null;
+function audio() {
+  try {
+    if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+  } catch (e) {}
+  return actx;
+}
+function tone(freq, dur, type, vol, slideTo) {
+  const a = audio(); if (!a) return;
+  const o = a.createOscillator(), g = a.createGain();
+  o.type = type || 'sine';
+  o.frequency.setValueAtTime(freq, a.currentTime);
+  if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, a.currentTime + dur);
+  g.gain.setValueAtTime(vol || 0.05, a.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + dur);
+  o.connect(g).connect(a.destination);
+  o.start(); o.stop(a.currentTime + dur + 0.02);
+}
+function sfxEat() {
+  tone(880, 0.06, 'square', 0.05, 1320);
+  setTimeout(function () { tone(1320, 0.07, 'square', 0.045); }, 40);
+}
+function sfxTurn() { tone(660, 0.03, 'triangle', 0.018); }
+function sfxDie() {
+  const a = audio(); if (!a) return;
+  [330, 247, 185, 138].forEach(function (f, i) {
+    const t0 = a.currentTime + i * 0.09;
+    const o = a.createOscillator(), g = a.createGain();
+    o.type = 'sawtooth';
+    o.frequency.setValueAtTime(f, t0);
+    o.frequency.exponentialRampToValueAtTime(f * 0.55, t0 + 0.28);
+    g.gain.setValueAtTime(0.09, t0);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.32);
+    o.connect(g).connect(a.destination);
+    o.start(t0); o.stop(t0 + 0.35);
+  });
+}
+function sfxStart() {
+  [523.25, 659.25, 783.99, 1046.5].forEach(function (f, i) {
+    setTimeout(function () { tone(f, 0.08, 'square', 0.05); }, i * 55);
+  });
+}
+
+/* ══════════════════════════════════════════
+   ۷) ذرات و متن‌های شناور
+   ══════════════════════════════════════════ */
+function burst(x, y, n, spread, spMax, colors, grav) {
+  for (let i = 0; i < n; i++) {
+    const a = rand(0, TAU), sp = rand(0.5, spMax);
+    particles.push({
+      x: x + rand(-spread, spread),
+      y: y + rand(-spread, spread),
+      vx: Math.cos(a) * sp,
+      vy: Math.sin(a) * sp - 0.6,
+      life: 1,
+      size: rand(2, 5),
+      col: colors[(Math.random() * colors.length) | 0],
+      grav: grav == null ? 0.06 : grav
+    });
+  }
+}
+function updateParticles() {
+  for (let i = 0; i < particles.length; i++) {
+    const p = particles[i];
+    p.x += p.vx; p.y += p.vy;
+    p.vy += p.grav;
+    p.vx *= 0.97;
+    p.life -= 0.032;
+  }
+  particles = particles.filter(function (p) { return p.life > 0; });
+}
+function drawParticles() {
+  for (let i = 0; i < particles.length; i++) {
+    const p = particles[i];
+    ctx.globalAlpha = Math.max(0, p.life);
+    ctx.fillStyle = p.col;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, Math.max(0.4, p.size * p.life), 0, TAU);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+function addFloat(x, y, text, color, size) {
+  floats.push({ x: x, y: y, text: text, color: color, size: size || 11, life: 1, vy: -1.1 });
+}
+function updateFloats() {
+  for (let i = 0; i < floats.length; i++) {
+    const f = floats[i];
+    f.y += f.vy; f.vy *= 0.95; f.life -= 0.02;
+  }
+  floats = floats.filter(function (f) { return f.life > 0; });
+}
+function drawFloats() {
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  for (let i = 0; i < floats.length; i++) {
+    const f = floats[i];
+    ctx.globalAlpha = clamp(f.life * 1.4, 0, 1);
+    ctx.font = 'bold ' + f.size + "px 'Press Start 2P', monospace";
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = 'rgba(10,26,40,0.85)';
+    ctx.strokeText(f.text, f.x, f.y);
+    ctx.fillStyle = f.color;
+    ctx.fillText(f.text, f.x, f.y);
+  }
+  ctx.globalAlpha = 1;
+}
+
+/* ══════════════════════════════════════════
+   ۸) پس‌زمینه (یه بار ساخته می‌شه)
+   ══════════════════════════════════════════ */
+const bgCanvas = document.createElement('canvas');
+bgCanvas.width = W;
+bgCanvas.height = H;
+(function buildBackground() {
+  const bg = bgCanvas.getContext('2d');
+
+  const g = bg.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0,    '#0E1F2E');
+  g.addColorStop(0.5,  '#122A3E');
+  g.addColorStop(1,    '#0A1A28');
+  bg.fillStyle = g;
+  bg.fillRect(0, 0, W, H);
+
+  for (let y = 0; y < GRID_H; y++) {
+    for (let x = 0; x < GRID_W; x++) {
+      if ((x + y) % 2 === 0) {
+        bg.fillStyle = 'rgba(255,255,255,0.022)';
+        bg.fillRect(x * CELL, y * CELL, CELL, CELL);
+      }
+    }
+  }
+
+  bg.strokeStyle = 'rgba(180,245,208,0.035)';
+  bg.lineWidth = 1;
+  for (let i = 0; i <= GRID_W; i++) {
+    bg.beginPath();
+    bg.moveTo(i * CELL + 0.5, 0);
+    bg.lineTo(i * CELL + 0.5, H);
+    bg.stroke();
+  }
+  for (let i = 0; i <= GRID_H; i++) {
+    bg.beginPath();
+    bg.moveTo(0, i * CELL + 0.5);
+    bg.lineTo(W, i * CELL + 0.5);
+    bg.stroke();
+  }
+
+  const vg = bg.createRadialGradient(W / 2, H / 2, H * 0.28, W / 2, H / 2, H * 0.78);
+  vg.addColorStop(0, 'rgba(0,0,0,0)');
+  vg.addColorStop(1, 'rgba(0,0,0,0.42)');
+  bg.fillStyle = vg;
+  bg.fillRect(0, 0, W, H);
+})();
+
+/* ══════════════════════════════════════════
+   ۹) منطق مار
+   ══════════════════════════════════════════ */
+function resetSnake() {
+  const hx = 8, hy = Math.floor(GRID_H / 2);
+  snake = [
+    { x: hx,     y: hy },
+    { x: hx - 1, y: hy },
+    { x: hx - 2, y: hy }
+  ];
+  oldSnake = snake.map(function (s) { return { x: s.x, y: s.y }; });
+  dir = { x: 1, y: 0 };
+  pendingDirs = [];
+  tickInterval = 130;
+  tickAcc = 0;
+}
+
+function spawnFood() {
+  const occupied = new Set();
+  for (let i = 0; i < snake.length; i++) occupied.add(snake[i].x + ',' + snake[i].y);
+
+  const empty = [];
+  for (let y = 0; y < GRID_H; y++) {
+    for (let x = 0; x < GRID_W; x++) {
+      if (!occupied.has(x + ',' + y)) empty.push({ x: x, y: y });
+    }
+  }
+  if (empty.length === 0) return;
+  food = empty[(Math.random() * empty.length) | 0];
+}
+
+function queueDir(d) {
+  if (!d) return;
+  const last = pendingDirs.length > 0 ? pendingDirs[pendingDirs.length - 1] : dir;
+  // ۱۸۰ درجه ممنوع
+  if (d.x === -last.x && d.y === -last.y) return;
+  // تکرار ممنوع
+  if (d.x === last.x && d.y === last.y) return;
+  if (pendingDirs.length >= 3) return;
+  pendingDirs.push({ x: d.x, y: d.y });
+  sfxTurn();
+}
+
+function tick() {
+  oldSnake = snake.map(function (s) { return { x: s.x, y: s.y }; });
+
+  if (pendingDirs.length > 0) dir = pendingDirs.shift();
+
+  const head = snake[0];
+  const nx = head.x + dir.x;
+  const ny = head.y + dir.y;
+
+  if (nx < 0 || nx >= GRID_W || ny < 0 || ny >= GRID_H) {
+    die('به دیوار خوردی!');
+    return;
+  }
+
+  const willEat = (nx === food.x && ny === food.y);
+
+  const checkLen = willEat ? snake.length : snake.length - 1;
+  for (let i = 0; i < checkLen; i++) {
+    if (snake[i].x === nx && snake[i].y === ny) {
+      die('خودت رو گاز گرفتی!');
+      return;
+    }
+  }
+
+  snake.unshift({ x: nx, y: ny });
+
+  if (willEat) {
+    applesEaten++;
+    score += 10 + Math.floor(speedStage * 2);
+    chomp = 1;
+    shake = 6;
+    sfxEat();
+
+    const cx = nx * CELL + CELL / 2;
+    const cy = ny * CELL + CELL / 2;
+    burst(cx, cy, 16, 2, 4.5, ['#FF4D5E', '#FF8FA0', '#FFFFFF', '#FFD23F'], 0.12);
+    addFloat(cx, cy - 14, '+10', '#FFD23F', 11);
+
+    spawnFood();
+
+    const newInterval = Math.max(70, 130 - (snake.length - 3) * 2);
+    if (newInterval < tickInterval - 0.5) {
+      speedStage++;
+      whiteFlash = Math.max(whiteFlash, 0.10);
+    }
+    tickInterval = newInterval;
+  } else {
+    snake.pop();
+  }
+
+  $len.textContent = String(snake.length);
+  $score.textContent = pad(score, 3);
+}
+
+function die(reason) {
+  if (state !== PLAY) return;
+  state = DYING;
+  dyingT = 0;
+  shake = 26;
+  whiteFlash = 0.55;
+  deathReason = reason || '';
+  sfxDie();
+
+  for (let i = 0; i < snake.length; i++) {
+    const cx = snake[i].x * CELL + CELL / 2;
+    const cy = snake[i].y * CELL + CELL / 2;
+    burst(cx, cy, 3, 2, 4.5, ['#B8F5D0', '#4DD17E', '#2AA860', '#FFFFFF'], 0.14);
+  }
+}
+
+/* ══════════════════════════════════════════
+   ۱۰) درون‌یابی موقعیت‌ها
+   ══════════════════════════════════════════ */
+function getRenderPos(i, t) {
+  const prevIdx = i < oldSnake.length ? i : oldSnake.length - 1;
+  const prev = oldSnake[prevIdx] || snake[i];
+  const curr = snake[i];
+  return {
+    x: (prev.x + (curr.x - prev.x) * t) * CELL + CELL / 2,
+    y: (prev.y + (curr.y - prev.y) * t) * CELL + CELL / 2
+  };
+}
+
+/* ══════════════════════════════════════════
+   ۱۱) رسم سیب
+   ══════════════════════════════════════════ */
+function drawFood() {
+  const cx = food.x * CELL + CELL / 2;
+  const cy = food.y * CELL + CELL / 2;
+  const pulse = 1 + Math.sin(frame * 0.09) * 0.10;
+  const r = CELL * 0.34 * pulse;
+
+  const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, CELL * 0.95);
+  glow.addColorStop(0, 'rgba(255,77,94,0.35)');
+  glow.addColorStop(1, 'rgba(255,77,94,0)');
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.arc(cx, cy, CELL * 0.95, 0, TAU);
+  ctx.fill();
+
+  const g = ctx.createRadialGradient(cx - r * 0.35, cy - r * 0.4, 1, cx, cy, r * 1.15);
+  g.addColorStop(0, '#FF8FA0');
+  g.addColorStop(0.55, '#FF4D5E');
+  g.addColorStop(1, '#B01A2E');
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, TAU);
+  ctx.fill();
+
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx.beginPath();
+  ctx.arc(cx - r * 0.32, cy - r * 0.4, r * 0.26, 0, TAU);
+  ctx.fill();
+
+  ctx.strokeStyle = '#7A4A1E';
+  ctx.lineWidth = 1.6;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - r * 0.85);
+  ctx.lineTo(cx + 1.5, cy - r * 1.35);
+  ctx.stroke();
+
+  ctx.fillStyle = '#4FB86A';
+  ctx.beginPath();
+  ctx.ellipse(cx + 3.5, cy - r * 1.25, 3.2, 1.8, -0.4, 0, TAU);
+  ctx.fill();
+}
+
+/* ══════════════════════════════════════════
+   ۱۲) رسم مار
+   ══════════════════════════════════════════ */
+function drawSnake(t) {
+  if (snake.length === 0) return;
+
+  const HEAD_W = CELL * 0.86;
+  const TAIL_W = CELL * 0.46;
+  const isDying = (state === DYING);
+  const flash = 1 - Math.min(1, dyingT / 8);
+  const dyingRed = [220, 60, 80];
+
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  for (let i = 0; i < snake.length - 1; i++) {
+    const p0 = getRenderPos(i, t);
+    const p1 = getRenderPos(i + 1, t);
+    const frac = snake.length > 2 ? i / (snake.length - 2) : 0;
+    const w = lerp(HEAD_W * 0.94, TAIL_W, frac);
+
+    let col;
+    if (isDying) col = lerpRgb([22, 128, 63], dyingRed, 1 - flash);
+    else col = lerpRgb(HEAD_COL, TAIL_COL, frac * 0.92);
+
+    ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+    ctx.lineWidth = w + 3;
+    ctx.beginPath();
+    ctx.moveTo(p0.x + 1.5, p0.y + 2.5);
+    ctx.lineTo(p1.x + 1.5, p1.y + 2.5);
+    ctx.stroke();
+
+    ctx.strokeStyle = col;
+    ctx.lineWidth = w;
+    ctx.beginPath();
+    ctx.moveTo(p0.x, p0.y);
+    ctx.lineTo(p1.x, p1.y);
+    ctx.stroke();
+  }
+
+  if (!isDying) {
+    ctx.strokeStyle = 'rgba(255,255,255,0.30)';
+    ctx.lineWidth = HEAD_W * 0.22;
+    ctx.beginPath();
+    for (let i = 0; i < snake.length - 1; i++) {
+      const p0 = getRenderPos(i, t);
+      const p1 = getRenderPos(i + 1, t);
+      if (i === 0) ctx.moveTo(p0.x, p0.y);
+      ctx.lineTo(p1.x, p1.y);
+    }
+    ctx.stroke();
+  }
+
+  const hp = getRenderPos(0, t);
+  const headR = (HEAD_W / 2) * (1 + chomp * 0.16);
+
+  let headCol;
+  if (isDying) headCol = lerpRgb([22, 128, 63], dyingRed, 1 - flash);
+  else headCol = lerpRgb(HEAD_COL, TAIL_COL, 0);
+
+  ctx.fillStyle = 'rgba(0,0,0,0.35)';
+  ctx.beginPath();
+  ctx.arc(hp.x + 1.5, hp.y + 2.5, headR, 0, TAU);
+  ctx.fill();
+
+  ctx.fillStyle = headCol;
+  ctx.beginPath();
+  ctx.arc(hp.x, hp.y, headR, 0, TAU);
+  ctx.fill();
+
+  if (!isDying) {
+    const hg = ctx.createRadialGradient(hp.x - headR * 0.35, hp.y - headR * 0.4, 1, hp.x, hp.y, headR * 1.1);
+    hg.addColorStop(0, 'rgba(255,255,255,0.65)');
+    hg.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = hg;
+    ctx.beginPath();
+    ctx.arc(hp.x, hp.y, headR, 0, TAU);
+    ctx.fill();
+  }
+
+  drawEyes(hp.x, hp.y, headR, isDying);
+}
+
+function drawEyes(cx, cy, headR, isDying) {
+  const perp = { x: -dir.y, y: dir.x };
+  const off = headR * 0.42;
+  const eyeR = headR * 0.30;
+
+  const e1 = { x: cx + dir.x * off + perp.x * off * 0.9, y: cy + dir.y * off + perp.y * off * 0.9 };
+  const e2 = { x: cx + dir.x * off - perp.x * off * 0.9, y: cy + dir.y * off - perp.y * off * 0.9 };
+
+  ctx.fillStyle = '#FFFFFF';
+  ctx.beginPath(); ctx.arc(e1.x, e1.y, eyeR, 0, TAU); ctx.fill();
+  ctx.beginPath(); ctx.arc(e2.x, e2.y, eyeR, 0, TAU); ctx.fill();
+
+  const fx = food.x * CELL + CELL / 2;
+  const fy = food.y * CELL + CELL / 2;
+  let lx = fx - cx, ly = fy - cy;
+  const llen = Math.hypot(lx, ly) || 1;
+  lx /= llen; ly /= llen;
+
+  const pupilOff = eyeR * 0.42;
+
+  if (isDying) {
+    ctx.strokeStyle = '#0A1A28';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    [[e1.x, e1.y], [e2.x, e2.y]].forEach(function (pt) {
+      const px = pt[0], py = pt[1];
+      ctx.beginPath();
+      ctx.moveTo(px - eyeR * 0.55, py - eyeR * 0.55);
+      ctx.lineTo(px + eyeR * 0.55, py + eyeR * 0.55);
+      ctx.moveTo(px + eyeR * 0.55, py - eyeR * 0.55);
+      ctx.lineTo(px - eyeR * 0.55, py + eyeR * 0.55);
+      ctx.stroke();
+    });
+  } else {
+    ctx.fillStyle = '#0A1A28';
+    ctx.beginPath();
+    ctx.arc(e1.x + lx * pupilOff, e1.y + ly * pupilOff, eyeR * 0.58, 0, TAU);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(e2.x + lx * pupilOff, e2.y + ly * pupilOff, eyeR * 0.58, 0, TAU);
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.beginPath();
+    ctx.arc(e1.x + lx * pupilOff - eyeR * 0.2, e1.y + ly * pupilOff - eyeR * 0.2, eyeR * 0.18, 0, TAU);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(e2.x + lx * pupilOff - eyeR * 0.2, e2.y + ly * pupilOff - eyeR * 0.2, eyeR * 0.18, 0, TAU);
+    ctx.fill();
+  }
+}
+
+/* ══════════════════════════════════════════
+   ۱۳) HUD
+   ══════════════════════════════════════════ */
+function drawHUD() {
+  const fill = 1 - (tickInterval - 70) / (130 - 70);
+  if (fill > 0.02) {
+    ctx.fillStyle = 'rgba(180,245,208,0.20)';
+    ctx.fillRect(0, 0, W * fill, 3);
+    ctx.fillStyle = 'rgba(180,245,208,0.55)';
+    ctx.fillRect(0, 0, W * fill, 1.5);
+  }
+}
+
+/* ══════════════════════════════════════════
+   ۱۴) به‌روزرسانی
+   ══════════════════════════════════════════ */
+function update(dt) {
+  frame++;
+  updateParticles();
+  updateFloats();
+  if (shake > 0) { shake *= 0.86; if (shake < 0.3) shake = 0; }
+  if (chomp > 0) { chomp -= 0.055; if (chomp < 0) chomp = 0; }
+  if (whiteFlash > 0) { whiteFlash -= 0.035; if (whiteFlash < 0) whiteFlash = 0; }
+
+  if (state === READY) return;
+
+  if (state === PLAY) {
+    tickAcc += dt;
+    let guard = 0;
+    while (tickAcc >= tickInterval && guard < 4) {
+      tickAcc -= tickInterval;
+      tick();
+      guard++;
+      if (state !== PLAY) break;
+    }
+    if (guard >= 4) tickAcc = 0;
+    return;
+  }
+
+  if (state === DYING) {
+    dyingT++;
+    if (dyingT > 55) {
+      state = OVER;
+      $finalLen.textContent = String(snake.length);
+      $finalScore.textContent = String(score);
+      $reason.textContent = deathReason;
+      $over.classList.remove('hidden');
+      $over.classList.add('flex');
+      if (score > best) {
+        best = score;
+        localStorage.setItem('snake_best', Math.floor(best));
+        $best.textContent = pad(best, 3);
+      }
+    }
+  }
+}
+
+/* ══════════════════════════════════════════
+   ۱۵) رسم
+   ══════════════════════════════════════════ */
+function render() {
+  ctx.save();
+  if (shake > 0.4) ctx.translate(rand(-shake, shake) * 0.4, rand(-shake, shake) * 0.4);
+
+  ctx.drawImage(bgCanvas, 0, 0);
+
+  drawFood();
+
+  const t = (state === PLAY) ? clamp(tickAcc / tickInterval, 0, 1) : 1;
+  drawSnake(t);
+
+  drawParticles();
+  drawFloats();
+  drawHUD();
+
+  if (whiteFlash > 0) {
+    ctx.fillStyle = 'rgba(255,255,255,' + (whiteFlash * 0.5) + ')';
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  ctx.restore();
+}
+
+/* ══════════════════════════════════════════
+   ۱۶) حلقه‌ی اصلی
+   ══════════════════════════════════════════ */
+let lastT = performance.now();
+function loop(now) {
+  const dt = Math.min(now - lastT, 100);
+  lastT = now;
+  update(dt);
+  render();
+  requestAnimationFrame(loop);
+}
+
+/* ══════════════════════════════════════════
+   ۱۷) شروع / ریست
+   ══════════════════════════════════════════ */
+function startGame() {
+  state = PLAY;
+  score = 0;
+  applesEaten = 0;
+  speedStage = 0;
+  tickAcc = 0;
+  shake = 0;
+  chomp = 0;
+  whiteFlash = 0;
+  dyingT = 0;
+  frame = 0;
+  particles = [];
+  floats = [];
+  deathReason = '';
+
+  resetSnake();
+  spawnFood();
+
+  $score.textContent = '000';
+  $len.textContent = '3';
+  $start.classList.add('hidden');
+  $over.classList.add('hidden');
+  $over.classList.remove('flex');
+
+  audio();
+  sfxStart();
+}
+
+/* ══════════════════════════════════════════
+   ۱۸) ورودی — کیبورد
+   ══════════════════════════════════════════ */
+const KEYMAP = {
+  'ArrowUp':    { x: 0, y: -1 }, 'KeyW': { x: 0, y: -1 },
+  'ArrowDown':  { x: 0, y: 1 },  'KeyS': { x: 0, y: 1 },
+  'ArrowLeft':  { x: -1, y: 0 }, 'KeyA': { x: -1, y: 0 },
+  'ArrowRight': { x: 1, y: 0 },  'KeyD': { x: 1, y: 0 }
+};
+
+window.addEventListener('keydown', function (e) {
+  if (e.code === 'Space' || e.code === 'Enter') {
+    e.preventDefault();
+    if (!e.repeat && (state === READY || state === OVER)) startGame();
+    return;
+  }
+  const d = KEYMAP[e.code];
+  if (!d) return;
+  e.preventDefault();
+
+  if (state === READY) {
+    startGame();
+    queueDir(d);   // اگر معکوس باشه خودِ queueDir ردش می‌کنه
+    return;
+  }
+  if (state === PLAY) queueDir(d);
+}, { passive: false });
+
+/* ══════════════════════════════════════════
+   ۱۹) ورودی — لمسی (بازنویسی‌شده)
+   ══════════════════════════════════════════ */
+const SWIPE_MIN = 18;   // آستانه‌ی سوایپ (پیکسل CSS)
+let dragFrom = null;
+
+function onDown(x, y) {
+  if (state === READY || state === OVER) {
+    startGame();
+    dragFrom = { x: x, y: y };   // همون لمس می‌تونه سوایپ هم بشه
+    return;
+  }
+  dragFrom = { x: x, y: y };
+}
+
+function onMove(x, y) {
+  if (!dragFrom) return;
+  const dx = x - dragFrom.x;
+  const dy = y - dragFrom.y;
+  if (Math.abs(dx) < SWIPE_MIN && Math.abs(dy) < SWIPE_MIN) return;
+
+  if (Math.abs(dx) > Math.abs(dy)) queueDir({ x: dx > 0 ? 1 : -1, y: 0 });
+  else                             queueDir({ x: 0, y: dy > 0 ? 1 : -1 });
+
+  // مبدأ رو ریست کن تا یه کشیدنِ پیوسته بتونه چند بار تغییر جهت بده
+  dragFrom = { x: x, y: y };
+}
+
+function onUp() { dragFrom = null; }
+
+function isRestartBtn(target) {
+  return target && target.closest && target.closest('#restartBtn');
+}
+
+if (window.PointerEvent) {
+  $stage.addEventListener('pointerdown', function (e) {
+    if (isRestartBtn(e.target)) return;
+    e.preventDefault();
+    if (canvas.setPointerCapture && e.pointerId != null) {
+      try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
+    }
+    onDown(e.clientX, e.clientY);
+  }, { passive: false });
+
+  $stage.addEventListener('pointermove', function (e) {
+    if (!dragFrom) return;
+    e.preventDefault();
+    onMove(e.clientX, e.clientY);
+  }, { passive: false });
+
+  window.addEventListener('pointerup', onUp);
+  window.addEventListener('pointercancel', onUp);
+
+} else {
+  // فالبک برای مرورگرهای قدیمی
+  $stage.addEventListener('touchstart', function (e) {
+    if (isRestartBtn(e.target)) return;
+    e.preventDefault();
+    const t = e.changedTouches[0];
+    onDown(t.clientX, t.clientY);
+  }, { passive: false });
+
+  $stage.addEventListener('touchmove', function (e) {
+    if (!dragFrom) return;
+    e.preventDefault();
+    const t = e.changedTouches[0];
+    onMove(t.clientX, t.clientY);
+  }, { passive: false });
+
+  $stage.addEventListener('touchend', onUp, { passive: true });
+  $stage.addEventListener('touchcancel', onUp, { passive: true });
+}
+
+// ضدگلوله: هر حرکت لمسی روی صحنه رو بلاک کن (پول-تو-رفرش / اسکرول)
+$stage.addEventListener('touchmove', function (e) {
+  if (e.cancelable) e.preventDefault();
+}, { passive: false });
+
+$stage.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+
+// دکمه‌ی ریستارت
+$restart.addEventListener('pointerdown', function (e) {
+  e.preventDefault();
+  e.stopPropagation();
+  startGame();
+});
+$restart.addEventListener('touchstart', function (e) {
+  e.preventDefault();
+  e.stopPropagation();
+  startGame();
+}, { passive: false });
+
+/* ══════════════════════════════════════════
+   ۲۰) روشن!
+   ══════════════════════════════════════════ */
+resizeCanvas();
+resetSnake();
+spawnFood();
+$len.textContent = '3';
+requestAnimationFrame(loop);
+
+// یه بار دیگه بعد از لود کامل فونت‌ها/لی‌اوت، اندازه رو تنظیم کن
+window.addEventListener('load', function () { setTimeout(resizeCanvas, 60); });
+
+})();
+</script>
+</body>
+</html>
