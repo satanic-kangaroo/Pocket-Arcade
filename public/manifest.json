@@ -1,0 +1,24 @@
+{
+  "name": "Pocket Arcade",
+  "short_name": "Arcade",
+  "description": "شش بازی سبک و بدون نصب — همه در مرورگر، همه تک‌فایل.",
+  "lang": "fa",
+  "dir": "rtl",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "background_color": "#06080F",
+  "theme_color": "#06080F",
+  "categories": ["games", "entertainment"],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

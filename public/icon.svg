@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E293B"/>
+      <stop offset="100%" stop-color="#06080F"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3EE6A0"/>
+      <stop offset="50%" stop-color="#C084FC"/>
+      <stop offset="100%" stop-color="#FF4D8F"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="116" fill="url(#bgGrad)"/>
+  <rect x="8" y="8" width="496" height="496" rx="108" fill="none" stroke="url(#accent)" stroke-width="3" opacity="0.5"/>
+
+  <circle cx="256" cy="260" r="180" fill="#C084FC" opacity="0.10"/>
+
+  <!-- Joystick ball -->
+  <circle cx="215" cy="185" r="60" fill="url(#accent)"/>
+  <circle cx="196" cy="166" r="16" fill="#FFFFFF" opacity="0.55"/>
+
+  <!-- Joystick base -->
+  <rect x="197" y="232" width="36" height="118" rx="18" fill="#0B1220"/>
+  <rect x="197" y="232" width="36" height="118" rx="18" fill="none" stroke="url(#accent)" stroke-width="3"/>
+  <ellipse cx="215" cy="358" rx="74" ry="19" fill="#0B1220"/>
+  <ellipse cx="215" cy="358" rx="74" ry="19" fill="none" stroke="url(#accent)" stroke-width="3"/>
+
+  <!-- Big button -->
+  <circle cx="358" cy="352" r="46" fill="#FF4D8F"/>
+  <circle cx="346" cy="340" r="14" fill="#FFFFFF" opacity="0.4"/>
+
+  <!-- Medium button -->
+  <circle cx="305" cy="430" r="28" fill="#3EE6A0"/>
+  <circle cx="296" cy="421" r="8" fill="#FFFFFF" opacity="0.4"/>
+</svg>
