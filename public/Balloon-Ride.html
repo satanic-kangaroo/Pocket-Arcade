@@ -633,6 +633,7 @@ function update() {
     for (const s of pickups)   s.update();
     if (dyingT > 46) {
       state = OVER;
+      if (window.ArcadeAPI) ArcadeAPI.saveScore('balloon', score, { meta: { stars: starCount } });
       $over.classList.remove('hidden');
       if (score > best) {
         best = score;
@@ -770,5 +771,6 @@ requestAnimationFrame(loop);
 
 })();
 </script>
+<script src="./score.js"></script>
 </body>
 </html>

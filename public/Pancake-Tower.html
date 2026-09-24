@@ -605,6 +605,7 @@ function update() {
     }
     if (dyingT > 55) {
       state = OVER;
+      if (window.ArcadeAPI) ArcadeAPI.saveScore('pancake', score, { meta: { height: stack.length - 1 } });
       $finalH.textContent = (stack.length - 1);
       $over.classList.remove('hidden');
       if (score > best) {
@@ -701,5 +702,6 @@ requestAnimationFrame(loop);
 
 })();
 </script>
+<script src="./score.js"></script>
 </body>
 </html>

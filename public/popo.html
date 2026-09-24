@@ -654,6 +654,7 @@
             }
 
             gameOverModal.classList.remove('hidden');
+            if (window.ArcadeAPI) ArcadeAPI.saveScore('pony', score);
         }
 
         function resetGame() {
@@ -733,5 +734,6 @@
             gameLoop();
         };
     </script>
+<script src="./score.js"></script>
 </body>
 </html>

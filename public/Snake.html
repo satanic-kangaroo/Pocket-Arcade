@@ -736,6 +736,7 @@ function update(dt) {
     dyingT++;
     if (dyingT > 55) {
       state = OVER;
+      if (window.ArcadeAPI) ArcadeAPI.saveScore('snake', score, { meta: { length: snake.length, reason: deathReason } });
       $finalLen.textContent = String(snake.length);
       $finalScore.textContent = String(score);
       $reason.textContent = deathReason;
@@ -953,5 +954,6 @@ window.addEventListener('load', function () { setTimeout(resizeCanvas, 60); });
 
 })();
 </script>
+<script src="./score.js"></script>
 </body>
 </html>

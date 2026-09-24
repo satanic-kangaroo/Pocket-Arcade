@@ -1075,6 +1075,11 @@ function showWinModal() {
   $winScore.textContent = score1 + ' - ' + score2;
   $win.classList.remove('hidden');
   $win.classList.add('flex');
+  if (window.ArcadeAPI && mode === '1P') {
+  ArcadeAPI.saveScore('pong', score1, {
+    meta: { won: winner === 1, difficulty: difficulty, opponentScore: score2 }
+  });
+}
 }
 
 function goToMenu() {
@@ -1310,5 +1315,6 @@ requestAnimationFrame(loop);
 
 })();
 </script>
+<script src="./score.js"></script>
 </body>
 </html>

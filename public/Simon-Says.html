@@ -402,6 +402,7 @@ function onError() {
 
 function finishGame() {
   state = OVER;
+  if (window.ArcadeAPI) ArcadeAPI.saveScore('simon', score, { meta: { level: level } });
   $finalLvl.textContent = String(level);
   $finalScore.textContent = String(score);
   $over.classList.remove('hidden');
@@ -730,5 +731,6 @@ requestAnimationFrame(loop);
 
 })();
 </script>
+<script src="./score.js"></script>
 </body>
 </html>
