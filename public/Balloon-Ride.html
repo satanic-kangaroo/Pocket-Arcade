@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🎈 Balloon Ride</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+  body {
+    font-family: 'Press Start 2P', cursive;
+    touch-action: manipulation;
+    user-select: none; -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  canvas { display: block; }
+  .btn3d { box-shadow: 0 4px 0 0 rgba(0,0,0,.2); }
+  .btn3d:active { transform: translateY(2px); box-shadow: 0 2px 0 0 rgba(0,0,0,.2); }
+</style>
+</head>
+<body class="bg-gradient-to-b from-sky-200 to-pink-100 min-h-screen flex flex-col items-center justify-center p-2 md:p-6 text-slate-800">
+
+<div class="w-full max-w-3xl bg-white/80 backdrop-blur rounded-3xl p-3 md:p-5 shadow-2xl border-4 border-white flex flex-col items-center">
+
+  <!-- ═══ هدر ═══ -->
+  <div class="w-full flex justify-between items-center mb-3 px-1 text-[10px] md:text-xs">
+    <div class="flex items-center gap-2 text-sky-600">
+      <span class="text-base">🎈</span>
+      <span class="font-bold tracking-wider">BALLOON RIDE</span>
+    </div>
+    <div class="flex gap-2 md:gap-5 bg-white/70 px-3 py-2 rounded-xl border border-sky-200 text-sky-700">
+      <div>HI <span id="best" class="text-sky-500">00000</span></div>
+      <div>★ <span id="stars" class="text-amber-500">00</span></div>
+      <div>SCORE <span id="score" class="text-pink-500">00000</span></div>
+    </div>
+  </div>
+
+  <!-- ═══ صحنه ═══ -->
+  <div id="stage" class="relative w-full aspect-[8/3] bg-sky-100 rounded-2xl overflow-hidden border-2 border-sky-200">
+    <canvas id="game" class="w-full h-full"></canvas>
+
+    <div id="startModal" class="absolute inset-0 bg-sky-900/15 backdrop-blur-[2px] flex items-center justify-center p-4">
+      <div class="bg-white/95 px-6 py-5 rounded-2xl shadow-xl border border-sky-200 text-center max-w-xs">
+        <div class="text-3xl mb-2">🎈</div>
+        <p class="text-[10px] md:text-xs font-bold text-sky-700 mb-3">دکمه رو نگه دار تا بادکنک بالا بره</p>
+        <div class="flex justify-center gap-2 text-[9px] text-slate-500">
+          <span class="bg-slate-100 px-2 py-1 rounded border">Space نگه‌دار</span>
+          <span class="bg-slate-100 px-2 py-1 rounded border">لمس نگه‌دار</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="overModal" class="hidden absolute inset-0 bg-slate-900/40 backdrop-blur-sm flex flex-col items-center justify-center text-white p-4">
+      <h2 class="text-xl md:text-3xl text-pink-300 mb-1 font-bold tracking-wider drop-shadow">POP!</h2>
+      <p class="text-[10px] md:text-xs text-sky-100 mb-5">بادکنک ترکید!</p>
+      <button class="btn3d bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-6 rounded-xl transition text-[10px] md:text-xs">
+        دوباره (Space)
+      </button>
+    </div>
+  </div>
+
+  <button id="holdBtn" class="btn3d w-full mt-3 md:hidden bg-sky-500 text-white font-bold py-5 rounded-2xl text-xs">
+    ⬆ نگه دار تا بالا بره
+  </button>
+
+  <div class="mt-3 text-[9px] text-sky-400">HTML5 Canvas — صفر فایل خارجی</div>
+</div>
+
+<script>
+(function () {
+'use strict';
+
+/* ══════════════════════════════════════════
+   ۱) راه‌اندازی بوم (Canvas)
+   ══════════════════════════════════════════ */
+const canvas = document.getElementById('game');
+const ctx    = canvas.getContext('2d');
+const W = 800, H = 300;
+const DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+canvas.width  = W * DPR;
+canvas.height = H * DPR;
+ctx.setTransform(DPR, 0, 0, DPR, 0, 0);   // مقیاس برای صفحه‌های رتینا
+
+const $score = document.getElementById('score');
+const $best  = document.getElementById('best');
+const $stars = document.getElementById('stars');
+const $start = document.getElementById('startModal');
+const $over  = document.getElementById('overModal');
+const $stage = document.getElementById('stage');
+const $hold  = document.getElementById('holdBtn');
+
+/* ══════════════════════════════════════════
+   ۲) ثابت‌های بازی
+   ══════════════════════════════════════════ */
+const TAU = Math.PI * 2;
+const GROUND_Y = 258;      // خط زمین
+const CEIL_Y   = 14;       // سقف نرم
+const TOP_OFF  = 22;       // فاصله مرکز بادکنک تا بالاترین نقطه
+const BOT_OFF  = 45;       // فاصله مرکز تا ته سبد
+
+const GRAV   = 0.16;       // گرانش (هر فریم)
+const THRUST = -0.34;      // نیروی شعله
+const MAX_VY = 2.9;        // سرعت نهایی
+const DRAG   = 0.99;       // اصطکاک هوا
+
+/* ══════════════════════════════════════════
+   ۳) وضعیت بازی
+   ══════════════════════════════════════════ */
+const READY = 0, PLAY = 1, DYING = 2, OVER = 3;
+let state = READY;
+
+let score = 0, starCount = 0, frame = 0, speed = 3.4;
+let best = Number(localStorage.getItem('balloon_best')) || 0;
+let scroll = 0, worldSpeed = 0, shake = 0, dyingT = 0;
+let spawnTimer = 400, starTimer = 300;
+
+let obstacles = [], pickups = [], particles = [], bgClouds = [];
+
+const player = { x: 160, y: 150, r: 18, vy: 0, holding: false };
+
+$best.textContent = pad(best, 5);
+
+/* ══════════════════════════════════════════
+   ۴) ابزارهای کوچک
+   ══════════════════════════════════════════ */
+function rand(a, b) { return a + Math.random() * (b - a); }
+function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+function pad(n, len) { return String(Math.floor(n)).padStart(len, '0'); }
+
+/* ══════════════════════════════════════════
+   ۵) صدا — بدون هیچ فایل mp3!
+   ══════════════════════════════════════════ */
+let actx = null;
+function audio() {
+  if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+  if (actx && actx.state === 'suspended') actx.resume();
+  return actx;
+}
+function tone(freq, dur, type, vol) {
+  const a = audio(); if (!a) return;
+  const o = a.createOscillator(), g = a.createGain();
+  o.type = type || 'sine';
+  o.frequency.setValueAtTime(freq, a.currentTime);
+  g.gain.setValueAtTime(vol || 0.05, a.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + dur);
+  o.connect(g).connect(a.destination);
+  o.start(); o.stop(a.currentTime + dur);
+}
+function sfxStar()  { tone(880, 0.09, 'sine', 0.05); setTimeout(() => tone(1320, 0.12, 'sine', 0.045), 70); }
+function sfxPop() {
+  const a = audio(); if (!a) return;
+  const o = a.createOscillator(), g = a.createGain();
+  o.type = 'sawtooth';
+  o.frequency.setValueAtTime(340, a.currentTime);
+  o.frequency.exponentialRampToValueAtTime(55, a.currentTime + 0.28);
+  g.gain.setValueAtTime(0.10, a.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + 0.3);
+  o.connect(g).connect(a.destination);
+  o.start(); o.stop(a.currentTime + 0.32);
+}
+
+/* ══════════════════════════════════════════
+   ۶) ذرات (Juice!)
+   ══════════════════════════════════════════ */
+function spawnFlame() {
+  particles.push({
+    x: player.x + rand(-3, 3),
+    y: player.y + 24,
+    vx: rand(-0.3, 0.3),
+    vy: rand(0.5, 1.5),
+    life: 1,
+    size: rand(2, 4.5),
+    col: 'hsl(' + (rand(15, 48) | 0) + ',100%,' + (rand(55, 78) | 0) + '%)',
+    grav: -0.008
+  });
+}
+function burst(x, y, n, spread, spdMin, spdMax, colors) {
+  for (let i = 0; i < n; i++) {
+    const a = rand(0, TAU), sp = rand(spdMin, spdMax);
+    particles.push({
+      x: x + rand(-spread, spread),
+      y: y + rand(-spread, spread),
+      vx: Math.cos(a) * sp,
+      vy: Math.sin(a) * sp - 0.8,
+      life: 1,
+      size: rand(2, 5),
+      col: colors[(Math.random() * colors.length) | 0],
+      grav: 0.055
+    });
+  }
+}
+function updateParticles() {
+  for (const p of particles) {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += p.grav;
+    p.vx *= 0.985;
+    p.life -= 0.032;
+  }
+  particles = particles.filter(p => p.life > 0);
+}
+function drawParticles() {
+  for (const p of particles) {
+    ctx.globalAlpha = Math.max(0, p.life);
+    ctx.fillStyle = p.col;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, Math.max(0.4, p.size * p.life), 0, TAU);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+/* ══════════════════════════════════════════
+   ۷) موانع
+   ══════════════════════════════════════════ */
+class Bird {
+  constructor() {
+    this.x = W + 60;
+    this.baseY = rand(55, 200);
+    this.y = this.baseY;
+    this.amp = rand(8, 36);
+    this.phase = rand(0, TAU);
+    this.freq = rand(0.028, 0.058);
+    this.t = 0;
+    this.dead = false;
+  }
+  update() {
+    this.t++;
+    this.x -= worldSpeed * 1.25;
+    this.y = this.baseY + Math.sin(this.phase + this.t * this.freq) * this.amp;
+    if (this.x < -70) this.dead = true;
+  }
+  bounds() { return { x: this.x - 15, y: this.y - 9, w: 30, h: 18 }; }
+  draw() {
+    const x = this.x, y = this.y;
+    const flap = Math.sin(this.t * 0.34) * 9;
+    // بال عقب
+    ctx.fillStyle = '#3B4767';
+    ctx.beginPath();
+    ctx.moveTo(x + 12, y);
+    ctx.quadraticCurveTo(x + 2, y - 13 - flap, x - 11, y - 2);
+    ctx.quadraticCurveTo(x + 2, y + 2, x + 12, y);
+    ctx.fill();
+    // بدن
+    ctx.fillStyle = '#5A6B94';
+    ctx.beginPath(); ctx.ellipse(x + 4, y, 14, 8, -0.12, 0, TAU); ctx.fill();
+    // سر
+    ctx.beginPath(); ctx.arc(x - 8, y - 4, 7, 0, TAU); ctx.fill();
+    // منقار
+    ctx.fillStyle = '#FFB020';
+    ctx.beginPath();
+    ctx.moveTo(x - 13, y - 6);
+    ctx.lineTo(x - 22, y - 3);
+    ctx.lineTo(x - 13, y);
+    ctx.closePath(); ctx.fill();
+    // چشم
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(x - 9, y - 6.5, 2.4, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#1b1b2e';
+    ctx.beginPath(); ctx.arc(x - 9.6, y - 6.5, 1.2, 0, TAU); ctx.fill();
+    // بال جلو
+    ctx.fillStyle = '#7E90BC';
+    ctx.beginPath();
+    ctx.moveTo(x + 10, y);
+    ctx.quadraticCurveTo(x, y - 3 + flap, x - 8, y + 2);
+    ctx.quadraticCurveTo(x, y + 5, x + 10, y);
+    ctx.fill();
+  }
+}
+
+class StormCloud {
+  constructor() {
+    this.w = 66; this.h = 30;
+    this.x = W + 60;
+    this.y = Math.random() < 0.5 ? rand(40, 80) : rand(120, 165);
+    this.t = 0;
+    this.dead = false;
+  }
+  update() {
+    this.t++;
+    this.x -= worldSpeed * 0.92;
+    if (this.x < -100) this.dead = true;
+  }
+  bounds() { return { x: this.x, y: this.y, w: this.w, h: this.h + 22 }; }
+  draw() {
+    const x = this.x, y = this.y, w = this.w, h = this.h;
+    // ابر تیره
+    ctx.fillStyle = '#5D6B85';
+    ctx.beginPath();
+    ctx.arc(x + 14,      y + 18, 14, 0, TAU);
+    ctx.arc(x + 32,      y + 10, 17, 0, TAU);
+    ctx.arc(x + 52,      y + 18, 13, 0, TAU);
+    ctx.arc(x + 33,      y + 24, 15, 0, TAU);
+    ctx.fill();
+    // سایه روشن
+    ctx.fillStyle = 'rgba(255,255,255,0.14)';
+    ctx.beginPath();
+    ctx.arc(x + 26, y + 9, 10, 0, TAU);
+    ctx.arc(x + 44, y + 14, 8, 0, TAU);
+    ctx.fill();
+
+    // رعد و برق (چشمک‌زن)
+    const flash = (this.t % 60) < 40 ? 1 : 0.35;
+    ctx.globalAlpha = flash;
+    ctx.fillStyle = '#FFE34D';
+    ctx.beginPath();
+    ctx.moveTo(x + 30, y + h - 2);
+    ctx.lineTo(x + 38, y + h + 8);
+    ctx.lineTo(x + 33, y + h + 8);
+    ctx.lineTo(x + 40, y + h + 20);
+    ctx.lineTo(x + 26, y + h + 8);
+    ctx.lineTo(x + 31, y + h + 8);
+    ctx.closePath();
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+}
+
+/* ══════════════════════════════════════════
+   ۸) ستاره‌ها
+   ══════════════════════════════════════════ */
+class Star {
+  constructor(x, y) {
+    this.x = x; this.y = y;
+    this.t = rand(0, TAU);
+    this.dead = false;
+  }
+  update() {
+    this.x -= worldSpeed;
+    this.t += 0.09;
+    if (this.x < -40) this.dead = true;
+  }
+  bounds() { return { x: this.x - 10, y: this.y - 10, w: 20, h: 20 }; }
+  draw() {
+    const s = 1 + Math.sin(this.t) * 0.12;
+    const yy = this.y + Math.sin(this.t * 0.7) * 3;
+    ctx.save();
+    ctx.translate(this.x, yy);
+    ctx.rotate(Math.sin(this.t * 0.5) * 0.25);
+    ctx.scale(s, s);
+
+    const g = ctx.createRadialGradient(0, 0, 0, 0, 0, 22);
+    g.addColorStop(0, 'rgba(255,225,90,0.55)');
+    g.addColorStop(1, 'rgba(255,225,90,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(0, 0, 22, 0, TAU); ctx.fill();
+
+    ctx.beginPath();
+    for (let i = 0; i < 10; i++) {
+      const a = -Math.PI / 2 + (i * Math.PI) / 5;
+      const rr = i % 2 === 0 ? 9 : 3.9;
+      const px = Math.cos(a) * rr, py = Math.sin(a) * rr;
+      i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+    ctx.fillStyle = '#FFD23F';
+    ctx.fill();
+    ctx.strokeStyle = '#E8A800';
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
+    ctx.restore();
+  }
+}
+
+/* ══════════════════════════════════════════
+   ۹) رسم بادکنک — کاملاً وکتوری
+   ══════════════════════════════════════════ */
+function envelopePath(cx, cy, rx, ry) {
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - ry);
+  ctx.bezierCurveTo(cx + rx * 1.26, cy - ry * 0.92,
+                    cx + rx * 1.22, cy + ry * 0.45,
+                    cx + rx * 0.38, cy + ry * 0.96);
+  ctx.quadraticCurveTo(cx, cy + ry * 1.10,
+                       cx - rx * 0.38, cy + ry * 0.96);
+  ctx.bezierCurveTo(cx - rx * 1.22, cy + ry * 0.45,
+                    cx - rx * 1.26, cy - ry * 0.92,
+                    cx, cy - ry);
+  ctx.closePath();
+}
+
+function drawBalloon(cx, cy, r, burning, t) {
+  const rx = r;
+  const ry = r * 1.22;
+  const basketTop = cy + ry * 1.05 + 9;
+
+  /* --- طناب‌ها --- */
+  ctx.strokeStyle = 'rgba(95,72,58,0.8)';
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(cx - rx * 0.34, cy + ry * 0.94);
+  ctx.lineTo(cx - 10, basketTop);
+  ctx.moveTo(cx + rx * 0.34, cy + ry * 0.94);
+  ctx.lineTo(cx + 10, basketTop);
+  ctx.stroke();
+
+  /* --- پاکت بادکنک --- */
+  ctx.save();
+  envelopePath(cx, cy, rx, ry);
+  ctx.clip();
+
+  const cols = ['#FF6B9D', '#FFD166', '#4ECDC4', '#FF6B9D', '#FFD166', '#4ECDC4'];
+  const n = 6, span = rx * 2.4;
+  for (let i = 0; i < n; i++) {
+    ctx.fillStyle = cols[i];
+    ctx.fillRect(cx - rx * 1.2 + (i * span) / n, cy - ry * 1.25, span / n + 0.7, ry * 2.7);
+  }
+
+  const g = ctx.createRadialGradient(cx - rx * 0.4, cy - ry * 0.5, 1, cx, cy, rx * 1.75);
+  g.addColorStop(0,    'rgba(255,255,255,0.58)');
+  g.addColorStop(0.45, 'rgba(255,255,255,0.04)');
+  g.addColorStop(1,    'rgba(30,20,50,0.30)');
+  ctx.fillStyle = g;
+  ctx.fillRect(cx - rx * 1.4, cy - ry * 1.4, rx * 2.8, ry * 2.8);
+  ctx.restore();
+
+  envelopePath(cx, cy, rx, ry);
+  ctx.strokeStyle = 'rgba(40,30,60,0.22)';
+  ctx.lineWidth = 1.4;
+  ctx.stroke();
+
+  /* --- شعله‌ی مشعل --- */
+  if (burning) {
+    const f = 1 + Math.sin(t * 0.9) * 0.24;
+    const fy = cy + ry * 1.02;
+    const grd = ctx.createRadialGradient(cx, fy, 0, cx, fy, 13 * f);
+    grd.addColorStop(0,    'rgba(255,255,225,0.95)');
+    grd.addColorStop(0.35, 'rgba(255,190,60,0.85)');
+    grd.addColorStop(1,    'rgba(255,90,0,0)');
+    ctx.fillStyle = grd;
+    ctx.beginPath();
+    ctx.ellipse(cx, fy, 8 * f, 12 * f, 0, 0, TAU);
+    ctx.fill();
+  }
+
+  /* --- سبد --- */
+  ctx.fillStyle = '#B07A4A';
+  ctx.beginPath();
+  ctx.roundRect(cx - 12, basketTop, 24, 14, 4);
+  ctx.fill();
+
+  ctx.fillStyle = '#8A5C34';
+  ctx.beginPath();
+  ctx.roundRect(cx - 13, basketTop - 3, 26, 5, 2);
+  ctx.fill();
+
+  ctx.strokeStyle = 'rgba(70,40,20,0.35)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(cx - 6, basketTop + 2); ctx.lineTo(cx - 6, basketTop + 12);
+  ctx.moveTo(cx,     basketTop + 2); ctx.lineTo(cx,     basketTop + 12);
+  ctx.moveTo(cx + 6, basketTop + 2); ctx.lineTo(cx + 6, basketTop + 12);
+  ctx.stroke();
+}
+
+/* ══════════════════════════════════════════
+   ۱۰) پس‌زمینه
+   ══════════════════════════════════════════ */
+function initClouds() {
+  bgClouds = [];
+  for (let i = 0; i < 7; i++) {
+    bgClouds.push({
+      x: rand(0, W), y: rand(15, 150),
+      s: rand(0.5, 1.15),
+      spd: rand(0.15, 0.55),
+      w: 90
+    });
+  }
+}
+function drawCloud(x, y, s, col) {
+  ctx.fillStyle = col;
+  ctx.beginPath();
+  ctx.arc(x,          y,          16 * s, 0, TAU);
+  ctx.arc(x + 20 * s, y - 9 * s,  20 * s, 0, TAU);
+  ctx.arc(x + 44 * s, y,          15 * s, 0, TAU);
+  ctx.arc(x + 22 * s, y + 7 * s,  17 * s, 0, TAU);
+  ctx.fill();
+}
+function drawGround() {
+  const g = ctx.createLinearGradient(0, GROUND_Y, 0, H);
+  g.addColorStop(0, '#7ED26A');
+  g.addColorStop(1, '#3E9A45');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, GROUND_Y, W, H - GROUND_Y);
+
+  ctx.fillStyle = '#2F7A36';
+  ctx.fillRect(0, GROUND_Y, W, 2);
+
+  const off = scroll % 46;
+  for (let i = -46; i < W + 46; i += 46) {
+    const x = i - off;
+    ctx.fillStyle = '#2F7A36';
+    ctx.beginPath();
+    ctx.moveTo(x, GROUND_Y);
+    ctx.lineTo(x + 9, GROUND_Y - 13);
+    ctx.lineTo(x + 18, GROUND_Y);
+    ctx.closePath(); ctx.fill();
+
+    ctx.fillStyle = '#52AE58';
+    ctx.beginPath();
+    ctx.moveTo(x + 4, GROUND_Y);
+    ctx.lineTo(x + 9, GROUND_Y - 8);
+    ctx.lineTo(x + 14, GROUND_Y);
+    ctx.closePath(); ctx.fill();
+  }
+}
+
+/* ══════════════════════════════════════════
+   ۱۱) برخورد دایره ↔ مستطیل
+   ══════════════════════════════════════════ */
+function hitCircleRect(cx, cy, r, R) {
+  const nx = clamp(cx, R.x, R.x + R.w);
+  const ny = clamp(cy, R.y, R.y + R.h);
+  const dx = cx - nx, dy = cy - ny;
+  return dx * dx + dy * dy < r * r;
+}
+
+/* ══════════════════════════════════════════
+   ۱۲) تولید موانع و ستاره‌ها
+   ══════════════════════════════════════════ */
+function spawnStuff() {
+  spawnTimer -= worldSpeed;
+  if (spawnTimer <= 0) {
+    spawnTimer = rand(230, 340);
+    if (score < 60 || Math.random() < 0.66) obstacles.push(new Bird());
+    else obstacles.push(new StormCloud());
+  }
+
+  starTimer -= worldSpeed;
+  if (starTimer <= 0) {
+    starTimer = rand(420, 900);
+    const n = Math.random() < 0.45 ? 3 : 1;
+    const baseY = rand(65, 190);
+    for (let i = 0; i < n; i++) {
+      const yy = clamp(baseY + Math.sin(i * 1.1) * 22, 42, 200);
+      pickups.push(new Star(W + 60 + i * 36, yy));
+    }
+  }
+}
+
+/* ══════════════════════════════════════════
+   ۱۳) پایان بازی
+   ══════════════════════════════════════════ */
+function die() {
+  if (state !== PLAY) return;
+  state = DYING;
+  dyingT = 0;
+  shake = 14;
+  sfxPop();
+  burst(player.x, player.y, 46, 14, 1.2, 5.2,
+        ['#FF6B9D', '#FFD166', '#4ECDC4', '#FFFFFF', '#FF9BC0']);
+}
+
+/* ══════════════════════════════════════════
+   ۱۴) منطق هر فریم (Update)
+   ══════════════════════════════════════════ */
+function update() {
+  frame++;
+
+  worldSpeed = (state === PLAY) ? speed : (state === DYING ? speed * 0.35 : 0);
+
+  // ابرهای پس‌زمینه (همیشه)
+  for (const c of bgClouds) {
+    c.x -= c.spd * (state === DYING ? 0.4 : 1);
+    if (c.x < -110) { c.x = W + rand(30, 260); c.y = rand(15, 155); c.s = rand(0.5, 1.15); }
+  }
+
+  /* ---------- صفحه‌ی آماده ---------- */
+  if (state === READY) {
+    player.y = 150 + Math.sin(frame * 0.035) * 12;
+    player.vy = 0;
+    player.holding = Math.sin(frame * 0.06) > 0.25;
+    if (frame % 3 === 0 && player.holding) spawnFlame();
+    updateParticles();
+    return;
+  }
+
+  /* ---------- در حال بازی ---------- */
+  if (state === PLAY) {
+    scroll += speed;
+    speed = 3.4 + Math.min(3.4, frame * 0.001);
+    score += speed * 0.03;
+    $score.textContent = pad(score, 5);
+
+    // فیزیک
+    player.vy += GRAV;
+    if (player.holding) { player.vy += THRUST; spawnFlame(); }
+    player.vy *= DRAG;
+    player.vy = clamp(player.vy, -MAX_VY, MAX_VY);
+    player.y += player.vy;
+
+    // سقف نرم
+    if (player.y < CEIL_Y + TOP_OFF) {
+      player.y = CEIL_Y + TOP_OFF;
+      if (player.vy < 0) player.vy = 0;
+    }
+    // زمین = سقوط
+    if (player.y > GROUND_Y - BOT_OFF) {
+      player.y = GROUND_Y - BOT_OFF;
+      die();
+      return;
+    }
+
+    spawnStuff();
+
+    // موانع
+    for (const o of obstacles) {
+      o.update();
+      if (hitCircleRect(player.x, player.y, player.r - 2, o.bounds())) { die(); return; }
+    }
+    obstacles = obstacles.filter(o => !o.dead);
+
+    // ستاره‌ها
+    for (const s of pickups) {
+      s.update();
+      if (!s.dead && hitCircleRect(player.x, player.y, player.r + 4, s.bounds())) {
+        s.dead = true;
+        starCount++;
+        score += 25;
+        $stars.textContent = pad(starCount, 2);
+        sfxStar();
+        burst(s.x, s.y, 12, 4, 0.8, 2.8, ['#FFD23F', '#FFF3B0', '#FFA94D']);
+      }
+    }
+    pickups = pickups.filter(s => !s.dead);
+  }
+
+  /* ---------- لحظه‌ی ترکیدن ---------- */
+  if (state === DYING) {
+    dyingT++;
+    for (const o of obstacles) o.update();
+    for (const s of pickups)   s.update();
+    if (dyingT > 46) {
+      state = OVER;
+      $over.classList.remove('hidden');
+      if (score > best) {
+        best = score;
+        localStorage.setItem('balloon_best', Math.floor(best));
+        $best.textContent = pad(best, 5);
+      }
+    }
+  }
+
+  updateParticles();
+  if (shake > 0) { shake *= 0.9; if (shake < 0.25) shake = 0; }
+}
+
+/* ══════════════════════════════════════════
+   ۱۵) رسم هر فریم (Render)
+   ══════════════════════════════════════════ */
+function render() {
+  ctx.save();
+
+  if (shake > 0) ctx.translate(rand(-shake, shake) * 0.4, rand(-shake, shake) * 0.4);
+
+  // آسمان
+  const sky = ctx.createLinearGradient(0, 0, 0, H);
+  sky.addColorStop(0,    '#B8E4FF');
+  sky.addColorStop(0.55, '#DCF1FF');
+  sky.addColorStop(1,    '#FFE8F2');
+  ctx.fillStyle = sky;
+  ctx.fillRect(-30, -30, W + 60, H + 60);
+
+  // خورشید
+  ctx.fillStyle = 'rgba(255,240,170,0.55)';
+  ctx.beginPath(); ctx.arc(690, 52, 38, 0, TAU); ctx.fill();
+  ctx.fillStyle = 'rgba(255,250,225,0.95)';
+  ctx.beginPath(); ctx.arc(690, 52, 25, 0, TAU); ctx.fill();
+
+  // ابرها
+  for (const c of bgClouds) drawCloud(c.x, c.y, c.s, 'rgba(255,255,255,0.82)');
+
+  // زمین
+  drawGround();
+
+  // ستاره‌ها
+  for (const s of pickups) s.draw();
+
+  // موانع
+  for (const o of obstacles) o.draw();
+
+  // بادکنک
+  if (state === READY || state === PLAY) {
+    drawBalloon(player.x, player.y, player.r, player.holding, frame);
+  }
+
+  // ذرات
+  drawParticles();
+
+  ctx.restore();
+}
+
+/* ══════════════════════════════════════════
+   ۱۶) حلقه‌ی بازی با گام ثابت
+   ══════════════════════════════════════════ */
+const STEP = 1000 / 60;
+let acc = 0, last = performance.now();
+
+function loop(now) {
+  acc += Math.min(now - last, 200);
+  last = now;
+  let guard = 0;
+  while (acc >= STEP && guard < 5) { update(); acc -= STEP; guard++; }
+  if (guard >= 5) acc = 0;
+  render();
+  requestAnimationFrame(loop);
+}
+
+/* ══════════════════════════════════════════
+   ۱۷) شروع / ریست
+   ══════════════════════════════════════════ */
+function startGame() {
+  state = PLAY;
+  score = 0; starCount = 0; frame = 0; speed = 3.4;
+  scroll = 0; shake = 0; dyingT = 0;
+  spawnTimer = 420; starTimer = 300;
+  obstacles = []; pickups = []; particles = [];
+
+  player.x = 160; player.y = 150; player.vy = 0; player.holding = true;
+
+  $start.classList.add('hidden');
+  $over.classList.add('hidden');
+  $score.textContent = '00000';
+  $stars.textContent = '00';
+
+  audio();
+}
+
+/* ══════════════════════════════════════════
+   ۱۸) ورودی یکپارچه
+   ══════════════════════════════════════════ */
+function press() {
+  if (state === READY || state === OVER) { startGame(); return; }
+  if (state === PLAY) player.holding = true;
+}
+function release() { player.holding = false; }
+
+// کیبورد
+window.addEventListener('keydown', function (e) {
+  if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
+    e.preventDefault();
+    if (!e.repeat) press();
+  }
+});
+window.addEventListener('keyup', function (e) {
+  if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
+    e.preventDefault();
+    release();
+  }
+});
+
+// لمس / ماوس روی صحنه
+$stage.addEventListener('pointerdown', function (e) { e.preventDefault(); press(); });
+$stage.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+window.addEventListener('pointerup', release);
+window.addEventListener('pointercancel', release);
+window.addEventListener('blur', release);
+
+// دکمه‌ی موبایل
+$hold.addEventListener('pointerdown', function (e) { e.preventDefault(); press(); });
+$hold.addEventListener('pointerup',   function (e) { e.preventDefault(); release(); });
+$hold.addEventListener('pointerleave', release);
+
+/* ══════════════════════════════════════════
+   ۱۹) روشن!
+   ══════════════════════════════════════════ */
+initClouds();
+requestAnimationFrame(loop);
+
+})();
+</script>
+</body>
+</html>

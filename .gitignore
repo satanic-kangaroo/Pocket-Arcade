@@ -1,0 +1,8 @@
+# محتوای .gitignore رو این کن:
+node_modules/
+arcade.db
+arcade.db-journal
+arcade.db-wal
+arcade.db-shm
+*.log
+.DS_Store
