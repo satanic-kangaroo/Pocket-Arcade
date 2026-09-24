@@ -90,10 +90,24 @@ const server = serve({
         );
       }
 
+      // بهترین رکورد هر بازیکن + تعداد بازیهاش + آخرین متادیتا
       const rows = db.query(`
-        SELECT player_name, score, created_at
-        FROM scores
-        WHERE game = $game
+        SELECT
+          s1.player_name,
+          MAX(s1.score)  AS score,
+          COUNT(*)       AS plays,
+          MAX(s1.created_at) AS last_played,
+          (
+            SELECT s2.meta
+            FROM scores s2
+            WHERE s2.player_name = s1.player_name
+              AND s2.game = s1.game
+            ORDER BY s2.created_at DESC
+            LIMIT 1
+          ) AS meta
+        FROM scores s1
+        WHERE s1.game = $game
+        GROUP BY s1.player_name
         ORDER BY score DESC
         LIMIT $limit
       `).all({ $game: game, $limit: limit });
@@ -115,6 +129,56 @@ const server = serve({
       `).all();
 
       return Response.json({ stats });
+    }
+    // ─── API: آمار یک بازیکن ───
+    if (path === "/api/player-stats" && req.method === "GET") {
+      const name = (url.searchParams.get("name") || "").trim();
+      if (!name) {
+        return Response.json({ error: "name required" }, { status: 400 });
+      }
+
+      const rows = db.query(`
+        SELECT
+          game,
+          COUNT(*)   AS plays,
+          MAX(score) AS best,
+          AVG(score) AS avg,
+          MAX(created_at) AS last_played
+        FROM scores
+        WHERE player_name = $name
+        GROUP BY game
+        ORDER BY best DESC
+      `).all({ $name: name });
+
+      const totalRow = db.query(`
+        SELECT
+          COUNT(*)   AS total_plays,
+          MAX(score) AS best_ever
+        FROM scores
+        WHERE player_name = $name
+      `).get({ $name: name }) as { total_plays: number; best_ever: number } | null;
+
+      return Response.json({
+        name,
+        stats: rows,
+        total: totalRow || { total_plays: 0, best_ever: 0 }
+      });
+    }
+
+    // ─── API: بالاترین امتیاز همهی بازیکنها (per game) ───
+    if (path === "/api/players" && req.method === "GET") {
+      const rows = db.query(`
+        SELECT
+          player_name,
+          COUNT(*)   AS plays,
+          MAX(score) AS best
+        FROM scores
+        GROUP BY player_name
+        ORDER BY best DESC
+        LIMIT 30
+      `).all();
+
+      return Response.json({ players: rows });
     }
 
     // ─── Static Files ───

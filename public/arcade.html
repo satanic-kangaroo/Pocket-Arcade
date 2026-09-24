@@ -16,6 +16,7 @@
     -webkit-tap-highlight-color: transparent;
     background: #06080F;
   }
+  body.modal-open { overflow: hidden; }
   .px-font { font-family: 'Press Start 2P', 'Vazirmatn', monospace; }
 
   .bg-grid {
@@ -40,6 +41,85 @@
     50%     { transform: translate(-40px, 40px) scale(1.12); }
   }
 
+  /* ═══ دکمهی پروفایل ═══ */
+  .profile-btn {
+    position: fixed; top: 1rem; left: 1rem;
+    z-index: 50;
+    display: inline-flex; align-items: center; gap: 0.55rem;
+    padding: 0.4rem 0.9rem 0.4rem 0.4rem;
+    border-radius: 999px;
+    background: rgba(30,41,59,0.85);
+    border: 2px solid rgba(71,85,105,0.6);
+    color: #E2E8F0;
+    font-size: 0.8rem; font-weight: 700;
+    cursor: pointer;
+    transition: all .18s;
+    backdrop-filter: blur(8px);
+    font-family: inherit;
+  }
+  .profile-btn:hover {
+    background: rgba(30,41,59,1);
+    border-color: rgba(100,116,139,0.9);
+    transform: translateY(-1px);
+  }
+  .profile-btn:active { transform: translateY(0) scale(0.98); }
+
+  .profile-avatar {
+    width: 2rem; height: 2rem;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+    border: 2px solid rgba(71,85,105,0.7);
+    font-size: 1.15rem;
+    flex-shrink: 0;
+    transition: all .2s;
+  }
+  .profile-btn.has-profile .profile-avatar {
+    border-color: #3EE6A0;
+    box-shadow: 0 0 12px -2px rgba(62,230,160,0.5);
+  }
+  .profile-name {
+    max-width: 8rem;
+    overflow: hidden; text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  @media (max-width: 640px) {
+    .profile-name { display: none; }
+    .profile-btn { padding: 0.35rem; }
+    .profile-btn .profile-avatar { width: 2.2rem; height: 2.2rem; font-size: 1.3rem; }
+  }
+
+  /* ═══ بنر خوشآمد ═══ */
+  .welcome-banner {
+    display: flex; align-items: center; gap: 0.85rem;
+    padding: 0.85rem 1rem;
+    margin-bottom: 1.25rem;
+    border-radius: 1rem;
+    background: linear-gradient(135deg, rgba(62,230,160,0.14) 0%, rgba(192,132,252,0.10) 100%);
+    border: 1px solid rgba(62,230,160,0.35);
+    animation: rise .55s cubic-bezier(.22,1,.36,1) .35s both;
+  }
+  .welcome-banner[hidden] { display: none !important; }
+  .wb-icon { font-size: 1.6rem; flex-shrink: 0; animation: bob 2.4s ease-in-out infinite; }
+  .wb-text { flex: 1; display: flex; flex-direction: column; gap: 0.15rem; }
+  .wb-text strong { color: #E2E8F0; font-size: 0.85rem; font-weight: 800; }
+  .wb-text span   { color: #94A3B8; font-size: 0.72rem; line-height: 1.5; }
+  .wb-btn {
+    flex-shrink: 0;
+    padding: 0.5rem 1rem;
+    border-radius: 0.65rem;
+    background: #3EE6A0;
+    color: #06080F;
+    font-weight: 800; font-size: 0.78rem;
+    border: none; cursor: pointer;
+    box-shadow: 0 3px 0 0 #1E7A52;
+    transition: all .12s;
+    font-family: inherit;
+  }
+  .wb-btn:hover { filter: brightness(1.08); }
+  .wb-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 0 #1E7A52; }
+
+  /* ── کارت بازی ── */
   .game-card {
     position: relative; display: flex; flex-direction: column;
     border-radius: 1rem;
@@ -48,6 +128,7 @@
     overflow: hidden;
     transition: transform .22s cubic-bezier(.34,1.56,.64,1), border-color .22s, box-shadow .22s;
     text-decoration: none; color: inherit;
+    cursor: pointer;
   }
   .game-card::before {
     content: ''; position: absolute; inset: 0; border-radius: inherit;
@@ -94,23 +175,18 @@
   .card-desc  { font-size: 0.72rem; color: #94A3B8; line-height: 1.6; flex: 1; }
   .card-tag   { font-size: 0.58rem; padding: 2px 8px; border-radius: 999px; border: 1px solid; font-weight: 600; }
 
-  /* ── بج رکورد (جدید) ── */
   .best-badge {
-    position: absolute;
-    top: 0.5rem; left: 0.5rem;
+    position: absolute; top: 0.5rem; left: 0.5rem;
     display: inline-flex; align-items: center; gap: 0.25rem;
-    padding: 0.28rem 0.55rem;
-    border-radius: 999px;
+    padding: 0.28rem 0.55rem; border-radius: 999px;
     background: rgba(6,8,15,0.85);
     border: 1px solid rgba(255,255,255,0.1);
     color: #E2E8F0;
     font-family: 'Press Start 2P', monospace;
-    font-size: 0.5rem;
-    letter-spacing: 0.03em;
+    font-size: 0.5rem; letter-spacing: 0.03em;
     opacity: 0; transform: translateY(-4px);
     transition: opacity .35s ease, transform .35s ease;
-    z-index: 5;
-    pointer-events: none;
+    z-index: 5; pointer-events: none;
     backdrop-filter: blur(4px);
   }
   .best-badge.show { opacity: 1; transform: translateY(0); }
@@ -132,13 +208,526 @@
   .rise-in { opacity: 0; transform: translateY(22px); animation: rise .55s cubic-bezier(.22,1,.36,1) forwards; }
   @keyframes rise { to { opacity: 1; transform: translateY(0); } }
 
+  /* ═══ مودال لیدربورد ═══ */
+  .lb-modal {
+    position: fixed; inset: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: center;
+    padding: 1rem;
+    opacity: 0; visibility: hidden;
+    transition: opacity .22s ease, visibility 0s linear .22s;
+  }
+  .lb-modal.open {
+    opacity: 1; visibility: visible;
+    transition: opacity .22s ease, visibility 0s;
+  }
+  .lb-backdrop {
+    position: absolute; inset: 0;
+    background: rgba(3,5,10,0.72);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .lb-panel {
+    position: relative;
+    width: 100%; max-width: 26rem; max-height: 88vh;
+    display: flex; flex-direction: column;
+    border-radius: 1.25rem;
+    background: linear-gradient(180deg, #131C2E 0%, #0B1220 100%);
+    border: 2px solid rgba(71,85,105,0.6);
+    box-shadow:
+      0 32px 60px -18px rgba(0,0,0,0.85),
+      0 0 0 1px rgba(255,255,255,0.03) inset,
+      0 0 60px -20px var(--lb-accent, #3EE6A0);
+    overflow: hidden;
+    transform: translateY(24px) scale(0.96);
+    transition: transform .3s cubic-bezier(.22,1,.36,1);
+  }
+  .lb-modal.open .lb-panel { transform: translateY(0) scale(1); }
+
+  .lb-header {
+    position: relative;
+    padding: 1.1rem 1.2rem 1rem;
+    display: flex; align-items: center; gap: 0.85rem;
+    border-bottom: 1px solid rgba(71,85,105,0.4);
+    background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 100%);
+  }
+  .lb-header::before {
+    content: '';
+    position: absolute; left: 0; right: 0; top: 0; height: 3px;
+    background: linear-gradient(90deg, transparent, var(--lb-accent, #3EE6A0), transparent);
+    opacity: 0.6;
+  }
+  .lb-header-icon {
+    font-size: 1.85rem; line-height: 1;
+    filter: drop-shadow(0 4px 10px var(--lb-accent, #3EE6A0));
+    flex-shrink: 0;
+  }
+  .lb-header-info { flex: 1; min-width: 0; }
+  .lb-header-title {
+    font-size: 1rem; font-weight: 800; color: #E2E8F0;
+    margin: 0 0 2px; line-height: 1.2;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .lb-header-sub {
+    font-size: 0.7rem; color: #94A3B8; margin: 0;
+  }
+  .lb-close {
+    width: 2rem; height: 2rem; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 0.6rem;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #94A3B8;
+    font-size: 1.1rem; font-weight: bold;
+    cursor: pointer;
+    transition: all .15s;
+    font-family: inherit;
+  }
+  .lb-close:hover {
+    background: rgba(255,255,255,0.09);
+    color: #E2E8F0;
+    border-color: rgba(255,255,255,0.16);
+  }
+  .lb-close:active { transform: scale(0.93); }
+
+  .lb-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.75rem 1rem 1rem;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .lb-row {
+    display: grid;
+    grid-template-columns: 2.4rem 1fr auto;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.65rem 0.75rem;
+    border-radius: 0.75rem;
+    margin-bottom: 0.35rem;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid transparent;
+    transition: all .18s;
+  }
+  .lb-row.rank-1 {
+    background: linear-gradient(90deg, rgba(255,209,102,0.12) 0%, rgba(255,209,102,0.02) 100%);
+    border-color: rgba(255,209,102,0.28);
+  }
+  .lb-row.rank-2 {
+    background: linear-gradient(90deg, rgba(203,213,225,0.10) 0%, rgba(203,213,225,0.02) 100%);
+    border-color: rgba(203,213,225,0.22);
+  }
+  .lb-row.rank-3 {
+    background: linear-gradient(90deg, rgba(217,119,6,0.10) 0%, rgba(217,119,6,0.02) 100%);
+    border-color: rgba(217,119,6,0.22);
+  }
+  .lb-row.is-me {
+    box-shadow: 0 0 0 2px var(--lb-accent, #3EE6A0) inset;
+  }
+  .lb-rank {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.72rem;
+    color: #64748B;
+    text-align: center;
+    line-height: 1;
+  }
+  .lb-rank.medal { font-size: 1.2rem; font-family: inherit; }
+  .lb-name {
+    font-size: 0.82rem; font-weight: 700; color: #E2E8F0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .lb-name .me-badge {
+    display: inline-block;
+    margin-inline-start: 0.4rem;
+    font-size: 0.55rem;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: var(--lb-accent, #3EE6A0);
+    color: #06080F;
+    font-weight: 800;
+    vertical-align: middle;
+  }
+  .lb-score {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.78rem;
+    color: var(--lb-accent, #3EE6A0);
+    letter-spacing: 0.02em;
+  }
+
+  .lb-empty {
+    text-align: center;
+    padding: 2.4rem 1rem;
+    color: #64748B;
+  }
+  .lb-empty-icon {
+    font-size: 2.6rem;
+    margin-bottom: 0.7rem;
+    opacity: 0.55;
+    display: block;
+  }
+  .lb-empty-title { font-size: 0.85rem; font-weight: 700; color: #94A3B8; margin-bottom: 0.3rem; }
+  .lb-empty-desc  { font-size: 0.72rem; line-height: 1.6; }
+
+  .lb-loading {
+    text-align: center;
+    padding: 2.4rem 1rem;
+    color: #64748B;
+    font-size: 0.75rem;
+  }
+  .lb-spinner {
+    width: 32px; height: 32px;
+    margin: 0 auto 0.85rem;
+    border-radius: 50%;
+    border: 3px solid rgba(255,255,255,0.08);
+    border-top-color: var(--lb-accent, #3EE6A0);
+    animation: spin 0.85s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .lb-footer {
+    padding: 0.85rem 1rem 1rem;
+    border-top: 1px solid rgba(71,85,105,0.4);
+    background: rgba(0,0,0,0.15);
+    display: flex; flex-direction: column; gap: 0.5rem;
+  }
+  .lb-play-btn {
+    display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+    padding: 0.85rem; border-radius: 0.75rem;
+    font-size: 0.88rem; font-weight: 800; color: #06080F;
+    background: var(--lb-accent, #3EE6A0);
+    box-shadow: 0 4px 0 0 var(--lb-accent-dark, rgba(0,0,0,0.35));
+    transition: transform .12s, box-shadow .12s, filter .15s;
+    border: none; cursor: pointer;
+    font-family: inherit;
+  }
+  .lb-play-btn:hover { filter: brightness(1.10); }
+  .lb-play-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 0 var(--lb-accent-dark, rgba(0,0,0,0.35));
+  }
+  .lb-total {
+    text-align: center;
+    font-size: 0.65rem;
+    color: #64748B;
+  }
+
+  /* ═══ مودال پروفایل ═══ */
+  .pf-modal {
+    position: fixed; inset: 0; z-index: 110;
+    display: flex; align-items: center; justify-content: center;
+    padding: 1rem;
+    opacity: 0; visibility: hidden;
+    transition: opacity .22s ease, visibility 0s linear .22s;
+  }
+  .pf-modal.open {
+    opacity: 1; visibility: visible;
+    transition: opacity .22s ease, visibility 0s;
+  }
+  .pf-backdrop {
+    position: absolute; inset: 0;
+    background: rgba(3,5,10,0.75);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .pf-panel {
+    position: relative;
+    width: 100%; max-width: 24rem; max-height: 90vh;
+    display: flex; flex-direction: column;
+    border-radius: 1.25rem;
+    background: linear-gradient(180deg, #131C2E 0%, #0B1220 100%);
+    border: 2px solid rgba(71,85,105,0.6);
+    box-shadow:
+      0 32px 60px -18px rgba(0,0,0,0.85),
+      0 0 60px -20px rgba(62,230,160,0.4);
+    overflow: hidden;
+    transform: translateY(24px) scale(0.96);
+    transition: transform .3s cubic-bezier(.22,1,.36,1);
+  }
+  .pf-modal.open .pf-panel { transform: translateY(0) scale(1); }
+
+  .pf-header {
+    position: relative;
+    padding: 1rem 1.2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid rgba(71,85,105,0.4);
+    background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 100%);
+  }
+  .pf-header::before {
+    content: '';
+    position: absolute; left: 0; right: 0; top: 0; height: 3px;
+    background: linear-gradient(90deg, transparent, #3EE6A0, #C084FC, transparent);
+    opacity: 0.7;
+  }
+  .pf-title { font-size: 1rem; font-weight: 800; color: #E2E8F0; margin: 0; }
+  .pf-close {
+    width: 2rem; height: 2rem;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 0.6rem;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #94A3B8;
+    font-size: 1rem; font-weight: bold;
+    cursor: pointer;
+    transition: all .15s;
+    font-family: inherit;
+  }
+  .pf-close:hover { background: rgba(255,255,255,0.09); color: #E2E8F0; }
+
+  .pf-body {
+    flex: 1; overflow-y: auto;
+    padding: 1.25rem 1.2rem;
+    display: flex; flex-direction: column; gap: 1.25rem;
+  }
+
+  .pf-avatar-section { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
+  .pf-avatar-big {
+    width: 6rem; height: 6rem;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+    border: 3px solid rgba(62,230,160,0.6);
+    box-shadow: 0 0 32px -8px rgba(62,230,160,0.6), 0 0 0 6px rgba(62,230,160,0.08);
+    font-size: 3rem;
+    cursor: pointer;
+    transition: all .2s;
+    font-family: inherit;
+    line-height: 1;
+  }
+  .pf-avatar-big:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 40px -6px rgba(62,230,160,0.8), 0 0 0 8px rgba(62,230,160,0.12);
+  }
+  .pf-avatar-big:active { transform: scale(0.98); }
+  .pf-avatar-hint { font-size: 0.7rem; color: #64748B; margin: 0; }
+
+  .pf-label {
+    display: flex; flex-direction: column; gap: 0.4rem;
+  }
+  .pf-label > span {
+    font-size: 0.75rem; font-weight: 700; color: #94A3B8;
+  }
+  .pf-label input {
+    width: 100%;
+    padding: 0.7rem 0.9rem;
+    border-radius: 0.7rem;
+    background: rgba(255,255,255,0.04);
+    border: 1.5px solid rgba(71,85,105,0.6);
+    color: #E2E8F0;
+    font-family: inherit;
+    font-size: 0.9rem;
+    outline: none;
+    transition: all .18s;
+  }
+  .pf-label input:focus {
+    border-color: #3EE6A0;
+    background: rgba(62,230,160,0.06);
+    box-shadow: 0 0 0 4px rgba(62,230,160,0.1);
+  }
+  .pf-label input::placeholder { color: #475569; }
+
+  .pf-stats-section {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(71,85,105,0.4);
+    border-radius: 0.9rem;
+    padding: 0.9rem;
+  }
+  .pf-stats-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 0.7rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid rgba(71,85,105,0.3);
+  }
+  .pf-stats-title { font-size: 0.82rem; font-weight: 800; color: #E2E8F0; }
+  .pf-stats-total { font-size: 0.68rem; color: #64748B; }
+  .pf-stats-list {
+    display: flex; flex-direction: column; gap: 0.4rem;
+    max-height: 14rem; overflow-y: auto;
+  }
+  .pf-stat-row {
+    display: grid;
+    grid-template-columns: 1.5rem 1fr auto;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 0.6rem;
+    border-radius: 0.55rem;
+    background: rgba(255,255,255,0.025);
+    font-size: 0.78rem;
+  }
+  .pf-stat-icon { font-size: 1.05rem; text-align: center; }
+  .pf-stat-name { color: #CBD5E1; font-weight: 600; }
+  .pf-stat-name small { color: #64748B; font-weight: 400; font-size: 0.65rem; margin-inline-start: 0.35rem; }
+  .pf-stat-score {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.72rem;
+    color: #3EE6A0;
+    letter-spacing: 0.02em;
+  }
+  .pf-stats-empty {
+    text-align: center;
+    padding: 1.2rem 0.5rem;
+    color: #64748B;
+    font-size: 0.75rem;
+    line-height: 1.6;
+  }
+  .pf-stats-loading {
+    text-align: center;
+    padding: 1rem;
+    color: #64748B;
+    font-size: 0.72rem;
+  }
+
+  .pf-footer {
+    padding: 0.85rem 1.2rem 1rem;
+    border-top: 1px solid rgba(71,85,105,0.4);
+    background: rgba(0,0,0,0.15);
+  }
+  .pf-save {
+    width: 100%;
+    display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+    padding: 0.85rem;
+    border-radius: 0.75rem;
+    background: #3EE6A0;
+    color: #06080F;
+    font-family: inherit;
+    font-size: 0.9rem; font-weight: 800;
+    border: none; cursor: pointer;
+    box-shadow: 0 4px 0 0 #1E7A52;
+    transition: all .12s;
+  }
+  .pf-save:hover { filter: brightness(1.08); }
+  .pf-save:active { transform: translateY(3px); box-shadow: 0 1px 0 0 #1E7A52; }
+  .pf-save:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ── انتخابگر آواتار ── */
+  .pf-picker {
+    position: absolute; inset: 0;
+    background: rgba(6,8,15,0.96);
+    backdrop-filter: blur(6px);
+    display: flex; flex-direction: column;
+    z-index: 10;
+    animation: fadeIn .18s ease;
+  }
+  .pf-picker[hidden] { display: none !important; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .pf-picker-head {
+    padding: 1rem 1.2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid rgba(71,85,105,0.4);
+    font-size: 0.85rem; font-weight: 700; color: #E2E8F0;
+  }
+  .pf-picker-close {
+    width: 2rem; height: 2rem;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 0.6rem;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #94A3B8;
+    font-size: 1rem; font-weight: bold;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .pf-picker-close:hover { background: rgba(255,255,255,0.09); color: #E2E8F0; }
+
+  .pf-picker-grid {
+    flex: 1; overflow-y: auto;
+    padding: 1rem;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.6rem;
+    align-content: start;
+  }
+  @media (max-width: 480px) {
+    .pf-picker-grid { grid-template-columns: repeat(4, 1fr); }
+  }
+  .pf-picker-item {
+    aspect-ratio: 1;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 0.8rem;
+    background: rgba(255,255,255,0.03);
+    border: 2px solid rgba(71,85,105,0.5);
+    font-size: 1.7rem;
+    cursor: pointer;
+    transition: all .15s;
+    font-family: inherit;
+    line-height: 1;
+  }
+  .pf-picker-item:hover {
+    transform: scale(1.08);
+    background: rgba(62,230,160,0.08);
+    border-color: rgba(62,230,160,0.5);
+  }
+  .pf-picker-item.selected {
+    background: rgba(62,230,160,0.15);
+    border-color: #3EE6A0;
+    box-shadow: 0 0 16px -2px rgba(62,230,160,0.6);
+  }
+
   ::-webkit-scrollbar { width: 9px; }
   ::-webkit-scrollbar-track { background: #0A1120; }
   ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
   ::-webkit-scrollbar-thumb:hover { background: #475569; }
+  .lb-body::-webkit-scrollbar, .pf-body::-webkit-scrollbar { width: 6px; }
+  .lb-body::-webkit-scrollbar-track, .pf-body::-webkit-scrollbar-track { background: transparent; }
+  .lb-body::-webkit-scrollbar-thumb, .pf-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+    /* ── آواتار در لیدربورد ── */
+  .lb-name {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #E2E8F0;
+  }
+  .lb-name-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+  .lb-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
+    border: 1.5px solid rgba(255,255,255,0.08);
+    font-size: 1rem;
+    line-height: 1;
+    transition: all .18s;
+  }
+  .lb-row.rank-1 .lb-avatar {
+    border-color: rgba(255,209,102,0.5);
+    background: rgba(255,209,102,0.1);
+    box-shadow: 0 0 12px -2px rgba(255,209,102,0.4);
+  }
+  .lb-row.rank-2 .lb-avatar {
+    border-color: rgba(203,213,225,0.5);
+  }
+  .lb-row.rank-3 .lb-avatar {
+    border-color: rgba(217,119,6,0.5);
+  }
+  .lb-row.is-me .lb-avatar {
+    border-color: var(--lb-accent, #3EE6A0);
+    box-shadow: 0 0 12px -2px var(--lb-accent, #3EE6A0);
+  }
+  .lb-plays {
+    display: inline-block;
+    margin-inline-start: 0.4rem;
+    font-size: 0.55rem;
+    font-weight: 500;
+    color: #64748B;
+    padding: 1px 5px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.04);
+    vertical-align: middle;
   }
 </style>
 </head>
@@ -148,9 +737,14 @@
 <div class="bg-glow glow-a"></div>
 <div class="bg-glow glow-b"></div>
 
+<!-- دکمهی پروفایل -->
+<button id="profileBtn" class="profile-btn" type="button">
+  <span class="profile-avatar" id="profileAvatar">🦊</span>
+  <span class="profile-name" id="profileName">مهمان</span>
+</button>
+
 <main class="relative z-10 max-w-5xl mx-auto px-4 pt-10 pb-16">
 
-  <!-- ═══ هدر ═══ -->
   <header class="text-center mb-10 rise-in">
     <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-800/60 border border-slate-700 mb-5">
       <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -172,11 +766,21 @@
     </div>
   </header>
 
-  <!-- ═══ گرید بازی‌ها ═══ -->
+  <!-- بنر خوشآمد -->
+  <div id="welcomeBanner" class="welcome-banner" hidden>
+    <span class="wb-icon">👋</span>
+    <div class="wb-text">
+      <strong>به آرکید خوش آمدی!</strong>
+      <span>اسم و آواتارت رو ثبت کن تا رکوردهات ذخیره بشه.</span>
+    </div>
+    <button id="wbOpenProfile" class="wb-btn" type="button">ثبت</button>
+  </div>
+
   <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
 
     <!-- 🎈 Balloon Ride -->
-    <a href="./Balloon-Ride.html" data-game="balloon"
+    <a href="./Balloon-Ride.html" data-game="balloon" data-title="Balloon Ride" data-icon="🎈"
+       data-accent="#3EE6A0" data-accent-dark="#1E7A52"
        class="game-card rise-in" style="animation-delay:.05s; --card-accent:#3EE6A0; --card-glow:rgba(62,230,160,.18); --card-shadow:rgba(62,230,160,.45); --icon-bg:rgba(62,230,160,.12)">
       <div class="icon-frame">
         <span class="best-badge"><span class="trophy">🏆</span><span class="val">—</span></span>
@@ -193,7 +797,8 @@
     </a>
 
     <!-- 🥞 Pancake Tower -->
-    <a href="./Pancake-Tower.html" data-game="pancake"
+    <a href="./Pancake-Tower.html" data-game="pancake" data-title="Pancake Tower" data-icon="🥞"
+       data-accent="#FFD166" data-accent-dark="#B88A1F"
        class="game-card rise-in" style="animation-delay:.1s; --card-accent:#FFD166; --card-glow:rgba(255,209,102,.18); --card-shadow:rgba(255,209,102,.45); --icon-bg:rgba(255,209,102,.12)">
       <div class="icon-frame">
         <span class="best-badge"><span class="trophy">🏆</span><span class="val">—</span></span>
@@ -210,7 +815,8 @@
     </a>
 
     <!-- 🎨 Simon Says -->
-    <a href="./Simon-Says.html" data-game="simon"
+    <a href="./Simon-Says.html" data-game="simon" data-title="Simon Says" data-icon="🎨"
+       data-accent="#C084FC" data-accent-dark="#7A4EB8"
        class="game-card rise-in" style="animation-delay:.15s; --card-accent:#C084FC; --card-glow:rgba(192,132,252,.18); --card-shadow:rgba(192,132,252,.45); --icon-bg:rgba(192,132,252,.12)">
       <div class="icon-frame">
         <span class="best-badge"><span class="trophy">🏆</span><span class="val">—</span></span>
@@ -227,7 +833,8 @@
     </a>
 
     <!-- 🐍 Snake -->
-    <a href="./Snake.html" data-game="snake"
+    <a href="./Snake.html" data-game="snake" data-title="Snake" data-icon="🐍"
+       data-accent="#4DD17E" data-accent-dark="#2B8A52"
        class="game-card rise-in" style="animation-delay:.2s; --card-accent:#4DD17E; --card-glow:rgba(77,209,126,.18); --card-shadow:rgba(77,209,126,.45); --icon-bg:rgba(77,209,126,.12)">
       <div class="icon-frame">
         <span class="best-badge"><span class="trophy">🏆</span><span class="val">—</span></span>
@@ -244,7 +851,8 @@
     </a>
 
     <!-- 🏓 Pong -->
-    <a href="./pong.html" data-game="pong"
+    <a href="./pong.html" data-game="pong" data-title="Pong" data-icon="🏓"
+       data-accent="#38BDF8" data-accent-dark="#1E6A96"
        class="game-card rise-in" style="animation-delay:.25s; --card-accent:#38BDF8; --card-glow:rgba(56,189,248,.18); --card-shadow:rgba(56,189,248,.45); --icon-bg:rgba(56,189,248,.12)">
       <div class="icon-frame">
         <span class="best-badge"><span class="trophy">🏆</span><span class="val">—</span></span>
@@ -261,7 +869,8 @@
     </a>
 
     <!-- 🦄 Pinkie Runner -->
-    <a href="./popo.html" data-game="pony"
+    <a href="./popo.html" data-game="pony" data-title="Pinkie Runner" data-icon="🦄"
+       data-accent="#FF6B9D" data-accent-dark="#B23A69"
        class="game-card rise-in" style="animation-delay:.3s; --card-accent:#FF6B9D; --card-glow:rgba(255,107,157,.18); --card-shadow:rgba(255,107,157,.45); --icon-bg:rgba(255,107,157,.12)">
       <div class="icon-frame">
         <span class="best-badge"><span class="trophy">🏆</span><span class="val">—</span></span>
@@ -279,7 +888,6 @@
 
   </section>
 
-  <!-- ═══ فوتر ═══ -->
   <footer class="mt-14 text-center space-y-3">
     <div class="flex items-center justify-center gap-2 text-slate-600 text-[10px]">
       <span class="h-px w-10 bg-slate-700"></span>
@@ -290,6 +898,71 @@
   </footer>
 
 </main>
+
+<!-- ═══ مودال لیدربورد ═══ -->
+<div id="lbModal" class="lb-modal" role="dialog" aria-modal="true" aria-labelledby="lbTitle">
+  <div class="lb-backdrop" data-close></div>
+  <div class="lb-panel" id="lbPanel">
+    <div class="lb-header">
+      <span class="lb-header-icon" id="lbIcon">🎮</span>
+      <div class="lb-header-info">
+        <h3 class="lb-header-title" id="lbTitle">بازی</h3>
+        <p class="lb-header-sub" id="lbSub">رکوردهای برتر</p>
+      </div>
+      <button class="lb-close" data-close aria-label="بستن" type="button">✕</button>
+    </div>
+    <div class="lb-body" id="lbBody"></div>
+    <div class="lb-footer">
+      <button class="lb-play-btn" id="lbPlayBtn" type="button">▷ شروع بازی</button>
+      <p class="lb-total" id="lbTotal"></p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ مودال پروفایل ═══ -->
+<div id="profileModal" class="pf-modal" role="dialog" aria-modal="true" aria-labelledby="pfTitle">
+  <div class="pf-backdrop" data-pf-close></div>
+  <div class="pf-panel">
+    <div class="pf-header">
+      <h3 class="pf-title" id="pfTitle">پروفایل بازیکن</h3>
+      <button class="pf-close" data-pf-close aria-label="بستن" type="button">✕</button>
+    </div>
+
+    <div class="pf-body">
+      <div class="pf-avatar-section">
+        <button class="pf-avatar-big" id="pfAvatarBtn" type="button">🦊</button>
+        <p class="pf-avatar-hint">برای تغییر، روی آواتار بزن</p>
+      </div>
+
+      <label class="pf-label">
+        <span>اسم بازیکن</span>
+        <input type="text" id="pfNameInput" maxlength="20" placeholder="اسمت رو بنویس..." autocomplete="off">
+      </label>
+
+      <div class="pf-stats-section">
+        <div class="pf-stats-head">
+          <span class="pf-stats-title">🏆 رکوردهای من</span>
+          <span class="pf-stats-total" id="pfStatsTotal"></span>
+        </div>
+        <div class="pf-stats-list" id="pfStatsList">
+          <div class="pf-stats-empty">ثبت کن تا رکوردهات اینجا نمایش داده بشه</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pf-footer">
+      <button class="pf-save" id="pfSaveBtn" type="button">💾 ذخیره</button>
+    </div>
+
+    <div class="pf-picker" id="pfPicker" hidden>
+      <div class="pf-picker-head">
+        <span>یک آواتار انتخاب کن</span>
+        <button class="pf-picker-close" id="pfPickerClose" type="button">✕</button>
+      </div>
+      <div class="pf-picker-grid" id="pfPickerGrid"></div>
+    </div>
+  </div>
+</div>
 
 <script>
 (function () {
@@ -315,8 +988,22 @@
   }
 
   /* ══════════════════════════════════════════
-     ۲) بارگذاری رکوردها از سرور
+     ۲) بارگذاری رکوردها روی کارت‌ها
      ══════════════════════════════════════════ */
+  const ALIAS = {
+    'balloon': 'balloon', 'balloon-ride': 'balloon',
+    'pancake': 'pancake', 'pancake-tower': 'pancake',
+    'simon': 'simon', 'simon-says': 'simon',
+    'snake': 'snake',
+    'pong': 'pong',
+    'pony': 'pony', 'pinkie': 'pony', 'popo': 'pony'
+  };
+
+  function normalizeId(raw) {
+    const key = String(raw || '').toLowerCase().trim();
+    return ALIAS[key] || key;
+  }
+
   async function loadStats() {
     try {
       const res = await fetch('/api/stats', { cache: 'no-store' });
@@ -324,43 +1011,24 @@
       const data = await res.json();
       if (!data || !Array.isArray(data.stats)) return;
 
-      // نرمال‌سازی نام بازی‌ها به id کارت
-      const ALIAS = {
-        'balloon': 'balloon',
-        'balloon-ride': 'balloon',
-        'pancake': 'pancake',
-        'pancake-tower': 'pancake',
-        'simon': 'simon',
-        'simon-says': 'simon',
-        'snake': 'snake',
-        'pong': 'pong',
-        'pony': 'pony',
-        'pinkie': 'pony',
-        'popo': 'pony'
-      };
-
       data.stats.forEach(function (s) {
-        const key = String(s.game || '').toLowerCase().trim();
-        const id = ALIAS[key] || key;
+        const id = normalizeId(s.game);
         const card = document.querySelector('[data-game="' + id + '"]');
         if (!card) return;
 
         const valEl = card.querySelector('.best-badge .val');
-        if (!valEl) return;
+        const badge = card.querySelector('.best-badge');
+        if (!valEl || !badge) return;
 
         const best = Math.floor(Number(s.best) || 0);
         if (best <= 0) return;
 
         valEl.textContent = String(best).padStart(4, '0');
-        const badge = card.querySelector('.best-badge');
-        if (badge) badge.classList.add('show');
+        badge.classList.add('show');
       });
-    } catch (err) {
-      // سرور در دسترس نیست — صفحه عادی کار می‌کنه
-    }
+    } catch (err) { /* بی‌صدا */ }
   }
 
-  // کمی تأخیر تا انیمیشن ورود کارت‌ها تموم شه
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function () {
       setTimeout(loadStats, 400);
@@ -369,12 +1037,442 @@
     setTimeout(loadStats, 400);
   }
 
-  /* ══════════════════════════════════════════
-     ۳) رفرش رکورد وقتی کاربر از بازی برمی‌گرده
-     ══════════════════════════════════════════ */
   window.addEventListener('pageshow', function (e) {
     if (e.persisted) loadStats();
   });
+
+  /* ══════════════════════════════════════════
+     ۳) مودال لیدربورد
+     ══════════════════════════════════════════ */
+  const $modal   = document.getElementById('lbModal');
+  const $panel   = document.getElementById('lbPanel');
+  const $icon    = document.getElementById('lbIcon');
+  const $title   = document.getElementById('lbTitle');
+  const $sub     = document.getElementById('lbSub');
+  const $body    = document.getElementById('lbBody');
+  const $play    = document.getElementById('lbPlayBtn');
+  const $total   = document.getElementById('lbTotal');
+
+  let currentUrl = null;
+  let lastFocus = null;
+
+  function getPlayerName() {
+    return (localStorage.getItem('arcade_player') || '').trim();
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
+    });
+  }
+
+  function openModal(card) {
+    lastFocus = document.activeElement;
+
+    const gameId = card.dataset.game;
+    const title  = card.dataset.title  || 'بازی';
+    const icon   = card.dataset.icon   || '🎮';
+    const accent = card.dataset.accent || '#3EE6A0';
+    const accentDark = card.dataset.accentDark || '#1E7A52';
+
+    currentUrl = card.href;
+
+    $panel.style.setProperty('--lb-accent', accent);
+    $panel.style.setProperty('--lb-accent-dark', accentDark);
+
+    $icon.textContent = icon;
+    $title.textContent = title;
+    $sub.textContent = 'رکوردهای برتر';
+    $total.textContent = '';
+
+    $body.innerHTML =
+      '<div class="lb-loading">' +
+        '<div class="lb-spinner"></div>' +
+        'در حال بارگذاری رکوردها...' +
+      '</div>';
+
+    $modal.classList.add('open');
+    document.body.classList.add('modal-open');
+
+    setTimeout(function () {
+      const btn = $modal.querySelector('.lb-close');
+      if (btn) btn.focus({ preventScroll: true });
+    }, 80);
+
+    fetchLeaderboard(gameId, title);
+  }
+
+  function closeModal() {
+    $modal.classList.remove('open');
+    document.body.classList.remove('modal-open');
+    currentUrl = null;
+    if (lastFocus && lastFocus.focus) {
+      setTimeout(function () { lastFocus.focus({ preventScroll: true }); }, 100);
+    }
+  }
+
+  async function fetchLeaderboard(gameId, title) {
+    try {
+      const res = await fetch(
+        '/api/leaderboard?game=' + encodeURIComponent(gameId) + '&limit=10',
+        { cache: 'no-store' }
+      );
+
+      if (!res.ok) throw new Error('bad status');
+      const data = await res.json();
+      const list = Array.isArray(data.leaderboard) ? data.leaderboard : [];
+
+      renderLeaderboard(list);
+    } catch (err) {
+      $body.innerHTML =
+        '<div class="lb-empty">' +
+          '<span class="lb-empty-icon">⚠️</span>' +
+          '<div class="lb-empty-title">ارتباط با سرور برقرار نشد</div>' +
+          '<div class="lb-empty-desc">می‌تونی مستقیم بازی کنی</div>' +
+        '</div>';
+    }
+  }
+
+  function renderLeaderboard(list) {
+    if (!list.length) {
+      $body.innerHTML =
+        '<div class="lb-empty">' +
+          '<span class="lb-empty-icon">🏁</span>' +
+          '<div class="lb-empty-title">هنوز هیچ رکوردی ثبت نشده</div>' +
+          '<div class="lb-empty-desc">اولین نفر باش که اسمش رو روی این بازی حک می‌کنه!</div>' +
+        '</div>';
+      $total.textContent = '';
+      return;
+    }
+
+    const me = getPlayerName();
+    let meFound = false;
+    let html = '';
+    let maxPlays = 0;
+
+    list.forEach(function (row, i) {
+      const rank = i + 1;
+      const name = String(row.player_name || 'بازیکن');
+      const score = Math.floor(Number(row.score) || 0);
+      const plays = Number(row.plays) || 1;
+      const isMe = me && name === me;
+      if (isMe) meFound = true;
+      if (plays > maxPlays) maxPlays = plays;
+
+      // ── استخراج آواتار از meta ──
+      let avatar = '👤';
+      try {
+        let meta = row.meta;
+        if (typeof meta === 'string') meta = JSON.parse(meta);
+        if (meta && typeof meta.avatar === 'string' && meta.avatar.trim()) {
+          avatar = meta.avatar.trim();
+        }
+      } catch (e) { /* meta نامعتبر — پیش‌فرض */ }
+
+      let rankHtml;
+      let rankClass = 'lb-rank';
+      if (rank === 1) { rankHtml = '🥇'; rankClass += ' medal'; }
+      else if (rank === 2) { rankHtml = '🥈'; rankClass += ' medal'; }
+      else if (rank === 3) { rankHtml = '🥉'; rankClass += ' medal'; }
+      else { rankHtml = String(rank).padStart(2, '0'); }
+
+      const rowClass =
+        'lb-row' +
+        (rank <= 3 ? ' rank-' + rank : '') +
+        (isMe ? ' is-me' : '');
+
+      // نمایش تعداد بازی فقط اگه بیشتر از ۱ باشه
+      const playsBadge = plays > 1
+        ? '<span class="lb-plays">' + plays + ' بازی</span>'
+        : '';
+
+      html +=
+        '<div class="' + rowClass + '">' +
+          '<span class="' + rankClass + '">' + rankHtml + '</span>' +
+          '<span class="lb-name">' +
+            '<span class="lb-avatar">' + escapeHtml(avatar) + '</span>' +
+            '<span class="lb-name-text">' + escapeHtml(name) + '</span>' +
+            (isMe ? '<span class="me-badge">تو</span>' : '') +
+            playsBadge +
+          '</span>' +
+          '<span class="lb-score">' + String(score).padStart(4, '0') + '</span>' +
+        '</div>';
+    });
+
+    $body.innerHTML = html;
+
+    const total = list.length;
+    let subText = total + ' بازیکن برتر';
+    if (maxPlays > 5) subText += ' · پرشورترین: ' + maxPlays + ' بازی';
+    $total.textContent = subText;
+
+    if (meFound) {
+      setTimeout(function () {
+        const el = $body.querySelector('.lb-row.is-me');
+        if (el && el.scrollIntoView) {
+          el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }
+      }, 200);
+    }
+  }
+
+  /* ══════════════════════════════════════════
+     ۴) رویدادهای لیدربورد
+     ══════════════════════════════════════════ */
+  document.querySelectorAll('.game-card').forEach(function (card) {
+    card.addEventListener('click', function (e) {
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      if (e.button && e.button !== 0) return;
+      e.preventDefault();
+      openModal(card);
+    });
+  });
+
+  $modal.querySelectorAll('[data-close]').forEach(function (el) {
+    el.addEventListener('click', function (e) {
+      e.preventDefault();
+      closeModal();
+    });
+  });
+
+  $play.addEventListener('click', function () {
+    if (!currentUrl) return;
+    window.location.href = currentUrl;
+  });
+
+  /* ══════════════════════════════════════════
+     ۵) پروفایل بازیکن
+     ══════════════════════════════════════════ */
+  const AVATARS = [
+    '🦊','🐱','🐼','🐯','🦁','🐸','🐙','🦄','🐲','🦖',
+    '🐧','🐨','🦉','🦋','🐢','🐺','🦝','🐹','🦔','🐳',
+    '👾','🤖','👽','🎃','⚡','🔥','💎','🌟','🚀','🎯'
+  ];
+
+  const GAME_META = {
+    'balloon': { icon: '🎈', name: 'Balloon Ride' },
+    'pancake': { icon: '🥞', name: 'Pancake Tower' },
+    'simon':   { icon: '🎨', name: 'Simon Says' },
+    'snake':   { icon: '🐍', name: 'Snake' },
+    'pong':    { icon: '🏓', name: 'Pong' },
+    'pony':    { icon: '🦄', name: 'Pinkie Runner' }
+  };
+
+  const $pfModal       = document.getElementById('profileModal');
+  const $pfAvatarBtn   = document.getElementById('pfAvatarBtn');
+  const $pfNameInput   = document.getElementById('pfNameInput');
+  const $pfSaveBtn     = document.getElementById('pfSaveBtn');
+  const $pfStatsList   = document.getElementById('pfStatsList');
+  const $pfStatsTotal  = document.getElementById('pfStatsTotal');
+  const $pfPicker      = document.getElementById('pfPicker');
+  const $pfPickerGrid  = document.getElementById('pfPickerGrid');
+  const $pfPickerClose = document.getElementById('pfPickerClose');
+
+  const $profileBtn    = document.getElementById('profileBtn');
+  const $profileAvatar = document.getElementById('profileAvatar');
+  const $profileName   = document.getElementById('profileName');
+  const $welcomeBanner = document.getElementById('welcomeBanner');
+  const $wbOpenProfile = document.getElementById('wbOpenProfile');
+
+  let pfTempAvatar = '🦊';
+
+  function readProfile() {
+    return {
+      name:   (localStorage.getItem('arcade_player') || '').trim(),
+      avatar: (localStorage.getItem('arcade_avatar') || '🦊').trim()
+    };
+  }
+
+  function writeProfile(name, avatar) {
+    const cleanName = String(name || '').trim().slice(0, 20);
+    const cleanAvatar = String(avatar || '🦊').slice(0, 4);
+    if (cleanName) localStorage.setItem('arcade_player', cleanName);
+    else           localStorage.removeItem('arcade_player');
+    localStorage.setItem('arcade_avatar', cleanAvatar);
+  }
+
+  function syncHeader() {
+    const p = readProfile();
+    $profileAvatar.textContent = p.avatar || '🦊';
+    $profileName.textContent   = p.name || 'مهمان';
+    $profileBtn.classList.toggle('has-profile', !!p.name);
+    $welcomeBanner.hidden = !!p.name;
+  }
+
+  function buildPicker() {
+    $pfPickerGrid.innerHTML = AVATARS.map(function (a) {
+      return '<button class="pf-picker-item" type="button" data-avatar="' + a + '">' + a + '</button>';
+    }).join('');
+    $pfPickerGrid.querySelectorAll('.pf-picker-item').forEach(function (el) {
+      el.addEventListener('click', function () {
+        pfTempAvatar = el.dataset.avatar;
+        $pfAvatarBtn.textContent = pfTempAvatar;
+        $pfPickerGrid.querySelectorAll('.pf-picker-item').forEach(function (x) {
+          x.classList.toggle('selected', x.dataset.avatar === pfTempAvatar);
+        });
+      });
+    });
+  }
+
+  async function loadMyStats(name) {
+    if (!name) {
+      $pfStatsList.innerHTML = '<div class="pf-stats-empty">اول اسمت رو ذخیره کن</div>';
+      $pfStatsTotal.textContent = '';
+      return;
+    }
+
+    $pfStatsList.innerHTML = '<div class="pf-stats-loading">در حال بارگذاری...</div>';
+
+    try {
+      const res = await fetch('/api/player-stats?name=' + encodeURIComponent(name), { cache: 'no-store' });
+      if (!res.ok) throw new Error('bad');
+      const data = await res.json();
+
+      const stats = Array.isArray(data.stats) ? data.stats : [];
+      if (!stats.length) {
+        $pfStatsList.innerHTML = '<div class="pf-stats-empty">هنوز تو هیچ بازی‌ای رکورد نداری.<br>بازی کن تا اینجا پر شه! 🎮</div>';
+        $pfStatsTotal.textContent = '';
+        return;
+      }
+
+      let html = '';
+      stats.forEach(function (s) {
+        const key = String(s.game || '').toLowerCase();
+        const meta = GAME_META[key] || { icon: '🎮', name: s.game };
+        const best = Math.floor(Number(s.best) || 0);
+        const plays = Number(s.plays) || 0;
+
+        html +=
+          '<div class="pf-stat-row">' +
+            '<span class="pf-stat-icon">' + meta.icon + '</span>' +
+            '<span class="pf-stat-name">' + meta.name +
+              '<small>(' + plays + ' بازی)</small>' +
+            '</span>' +
+            '<span class="pf-stat-score">' + String(best).padStart(4, '0') + '</span>' +
+          '</div>';
+      });
+
+      $pfStatsList.innerHTML = html;
+
+      const totalPlays = Number(data.total && data.total.total_plays) || 0;
+      const bestEver = Math.floor(Number(data.total && data.total.best_ever) || 0);
+      $pfStatsTotal.textContent = totalPlays + ' بازی · بهترین ' + String(bestEver).padStart(4, '0');
+
+    } catch (err) {
+      $pfStatsList.innerHTML = '<div class="pf-stats-empty">ارتباط با سرور برقرار نشد</div>';
+      $pfStatsTotal.textContent = '';
+    }
+  }
+
+  let pfLastFocus = null;
+
+  function openProfile() {
+    pfLastFocus = document.activeElement;
+    const p = readProfile();
+    pfTempAvatar = p.avatar || '🦊';
+
+    $pfAvatarBtn.textContent = pfTempAvatar;
+    $pfNameInput.value = p.name || '';
+    $pfPicker.hidden = true;
+
+    $pfModal.classList.add('open');
+    document.body.classList.add('modal-open');
+
+    setTimeout(function () {
+      $pfPickerGrid.querySelectorAll('.pf-picker-item').forEach(function (x) {
+        x.classList.toggle('selected', x.dataset.avatar === pfTempAvatar);
+      });
+      $pfNameInput.focus({ preventScroll: true });
+    }, 250);
+
+    if (p.name) loadMyStats(p.name);
+    else {
+      $pfStatsList.innerHTML = '<div class="pf-stats-empty">ثبت کن تا رکوردهات اینجا نمایش داده بشه</div>';
+      $pfStatsTotal.textContent = '';
+    }
+  }
+
+  function closeProfile() {
+    $pfModal.classList.remove('open');
+    document.body.classList.remove('modal-open');
+    if (pfLastFocus && pfLastFocus.focus) {
+      setTimeout(function () { pfLastFocus.focus({ preventScroll: true }); }, 100);
+    }
+  }
+
+  async function saveProfile() {
+    const name = $pfNameInput.value.trim();
+    if (!name) {
+      $pfNameInput.focus();
+      $pfNameInput.style.borderColor = '#FF4D8F';
+      $pfNameInput.style.boxShadow = '0 0 0 4px rgba(255,77,143,0.15)';
+      setTimeout(function () {
+        $pfNameInput.style.borderColor = '';
+        $pfNameInput.style.boxShadow = '';
+      }, 1200);
+      return;
+    }
+
+    $pfSaveBtn.disabled = true;
+    $pfSaveBtn.textContent = '⏳ در حال ذخیره...';
+
+    writeProfile(name, pfTempAvatar);
+    syncHeader();
+    await loadMyStats(name);
+
+    $pfSaveBtn.disabled = false;
+    $pfSaveBtn.textContent = '✓ ذخیره شد';
+
+    setTimeout(function () {
+      $pfSaveBtn.textContent = '💾 ذخیره';
+      closeProfile();
+    }, 900);
+  }
+
+  $profileBtn.addEventListener('click', openProfile);
+  $wbOpenProfile.addEventListener('click', openProfile);
+
+  $pfModal.querySelectorAll('[data-pf-close]').forEach(function (el) {
+    el.addEventListener('click', function (e) {
+      e.preventDefault();
+      closeProfile();
+    });
+  });
+
+  $pfAvatarBtn.addEventListener('click', function () {
+    $pfPicker.hidden = false;
+    const sel = $pfPickerGrid.querySelector('.pf-picker-item.selected');
+    if (sel && sel.scrollIntoView) sel.scrollIntoView({ block: 'center' });
+  });
+
+  $pfPickerClose.addEventListener('click', function () {
+    $pfPicker.hidden = true;
+  });
+
+  $pfSaveBtn.addEventListener('click', saveProfile);
+  $pfNameInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); saveProfile(); }
+  });
+
+  /* Escape برای بستن هر مودال */
+  window.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+
+    if ($pfModal.classList.contains('open')) {
+      if (!$pfPicker.hidden) { $pfPicker.hidden = true; return; }
+      e.preventDefault();
+      closeProfile();
+      return;
+    }
+
+    if ($modal.classList.contains('open')) {
+      e.preventDefault();
+      closeModal();
+    }
+  });
+
+  buildPicker();
+  syncHeader();
 
 })();
 </script>
