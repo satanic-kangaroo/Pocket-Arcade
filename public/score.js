@@ -57,7 +57,7 @@
         meta
       };
 
-      return fetch('/api/score', {
+      return fetch('api/score', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -68,7 +68,7 @@
 
     fetchPlayerStats: function (name) {
       if (!name) return Promise.resolve(null);
-      return fetch('/api/player-stats?name=' + encodeURIComponent(name), { cache: 'no-store' })
+      return fetch('api/player-stats?name=' + encodeURIComponent(name), { cache: 'no-store' })
         .then(r => r.ok ? r.json() : null)
         .catch(() => null);
     }

@@ -32,6 +32,7 @@ const MIME: Record<string, string> = {
 
 const server = serve({
   port: 3000,
+  hostname: "127.0.0.1",
 
   async fetch(req, server) {
     const url = new URL(req.url);

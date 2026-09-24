@@ -1659,18 +1659,25 @@
   buildPicker();
   syncHeader();
 
+})();
 
   /* ══════════════════════════════════════════
      ۶) PWA — Service Worker + Install
      ══════════════════════════════════════════ */
 
-  if ('serviceWorker' in navigator) {
+  // ── ثبت Service Worker ──
     window.addEventListener('load', function () {
-      navigator.serviceWorker.register('./sw.js', { scope: './' })
+    navigator.serviceWorker.register('./sw.js', { scope: './' })
+      .catch(function () { /* بی‌صدا */ });
+  });
+}if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('./sw.js', { scope: '/' })
         .catch(function () { /* بی‌صدا */ });
     });
   }
 
+  // ── تشخیص حالت نمایش ──
   const isStandalone =
     window.matchMedia('(display-mode: standalone)').matches ||
     window.navigator.standalone === true;
@@ -1687,22 +1694,28 @@
     if (!isStandalone) $installBtn.hidden = false;
   }
 
+  // ── Chrome / Edge / Android ──
   window.addEventListener('beforeinstallprompt', function (e) {
     e.preventDefault();
     deferredPrompt = e;
     showInstallBtn();
   });
 
+  // ── iOS: هیچ beforeinstallprompt ای نمیاد ──
   if (isIOS && !isStandalone) {
     showInstallBtn();
   }
 
+  // ── کلیک روی دکمه ──
   $installBtn.addEventListener('click', async function () {
+    // اگه iOS — مودال راهنما
     if (isIOS && !deferredPrompt) {
       $iosModal.classList.add('open');
       document.body.classList.add('modal-open');
       return;
     }
+
+    // اگه prompt آماده — مستقیم نشون بده
     if (deferredPrompt) {
       deferredPrompt.prompt();
       const choice = await deferredPrompt.userChoice;
@@ -1712,6 +1725,7 @@
     }
   });
 
+  // ── بستن مودال iOS ──
   $iosModal.querySelectorAll('[data-ios-close]').forEach(function (el) {
     el.addEventListener('click', function (e) {
       e.preventDefault();
@@ -1720,11 +1734,13 @@
     });
   });
 
+  // ── اگه نصب شد، دکمه رو مخفی کن ──
   window.addEventListener('appinstalled', function () {
     $installBtn.hidden = true;
     deferredPrompt = null;
   });
 
+  // ── Escape برای بستن مودال iOS ──
   window.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && $iosModal.classList.contains('open')) {
       e.preventDefault();
@@ -1732,9 +1748,6 @@
       document.body.classList.remove('modal-open');
     }
   });
-
-})();
-
 </script>
 
 </body>

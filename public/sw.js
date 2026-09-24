@@ -2,17 +2,17 @@
 const CACHE = 'pocket-arcade-v1';
 
 const PRECACHE = [
-  '/',
-  '/arcade.html',
-  '/manifest.json',
-  '/icon.svg',
-  '/score.js',
-  '/Balloon-Ride.html',
-  '/Pancake-Tower.html',
-  '/Simon-Says.html',
-  '/Snake.html',
-  '/pong.html',
-  '/popo.html'
+  './',
+  './arcade.html',
+  './manifest.json',
+  './icon.svg',
+  './score.js',
+  './Balloon-Ride.html',
+  './Pancake-Tower.html',
+  './Simon-Says.html',
+  './Snake.html',
+  './pong.html',
+  './popo.html'
 ];
 
 /* ── Install: precache all ── */
@@ -67,7 +67,7 @@ self.addEventListener('fetch', function (e) {
         })
         .catch(function () {
           return caches.match(req).then(function (c) {
-            return c || caches.match('/arcade.html');
+            return c || caches.match('./arcade.html');
           });
         })
     );

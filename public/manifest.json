@@ -4,8 +4,8 @@
   "description": "شش بازی سبک و بدون نصب — همه در مرورگر، همه تک‌فایل.",
   "lang": "fa",
   "dir": "rtl",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait-primary",
@@ -15,7 +15,7 @@
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "/icon.svg",
+      "src": "./icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
