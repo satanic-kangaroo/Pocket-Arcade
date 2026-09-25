@@ -922,6 +922,60 @@
 
   <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
 
+    <!-- 🍰 Pinkie Adventure -->
+    <a href="./pinkie-adventure.html" data-game="pinkie-adventure" data-title="Pinkie Adventure" data-icon="🍰"
+      data-accent="#FF6B9D" data-accent-dark="#B23A69"
+      class="game-card rise-in" style="animation-delay:.45s; --card-accent:#FF6B9D; --card-glow:rgba(255,107,157,.18); --card-shadow:rgba(255,107,157,.45); --icon-bg:rgba(255,107,157,.12)">
+      <div class="icon-frame">
+        <span class="best-badge"><span class="trophy">🏆</span><span class="val">—</span></span>
+        <span class="game-icon">🍰</span>
+      </div>
+      <div class="card-body">
+        <div class="flex items-center justify-between gap-2">
+          <h2 class="card-title">Pinkie Adventure</h2>
+          <span class="card-tag" style="color:#FF6B9D;border-color:rgba(255,107,157,.4)">پلتفرمر</span>
+        </div>
+        <p class="card-desc">پونی رو ببر تا آخر مرحله. سکه جمع کن، روی دشمن‌ها بپر، بلوک‌ها رو بشکن.</p>
+        <span class="play-btn">▷ بازی کن</span>
+      </div>
+    </a>
+
+    <!-- 🧱 Breakout -->
+    <a href="./breakout.html" data-game="breakout" data-title="Breakout" data-icon="🧱"
+      data-accent="#FF4D8F" data-accent-dark="#B01A50"
+      class="game-card rise-in" style="animation-delay:.4s; --card-accent:#FF4D8F; --card-glow:rgba(255,77,143,.18); --card-shadow:rgba(255,77,143,.45); --icon-bg:rgba(255,77,143,.12)">
+      <div class="icon-frame">
+        <span class="best-badge"><span class="trophy">🏆</span><span class="val">—</span></span>
+        <span class="game-icon">🧱</span>
+      </div>
+      <div class="card-body">
+        <div class="flex items-center justify-between gap-2">
+          <h2 class="card-title">Breakout</h2>
+          <span class="card-tag" style="color:#FF4D8F;border-color:rgba(255,77,143,.4)">فیزیک</span>
+        </div>
+        <p class="card-desc">توپ رو با پدال برگردون، آجرها رو بشکن و power-up جمع کن.</p>
+        <span class="play-btn">▷ بازی کن</span>
+      </div>
+    </a>
+
+    <!-- 🎮 Tetris -->
+    <a href="./tetris.html" data-game="tetris" data-title="Tetris" data-icon="🎮"
+      data-accent="#00F0FF" data-accent-dark="#007A96"
+      class="game-card rise-in" style="animation-delay:.35s; --card-accent:#00F0FF; --card-glow:rgba(0,240,255,.18); --card-shadow:rgba(0,240,255,.45); --icon-bg:rgba(0,240,255,.12)">
+      <div class="icon-frame">
+        <span class="best-badge"><span class="trophy">🏆</span><span class="val">—</span></span>
+        <span class="game-icon">🎮</span>
+      </div>
+      <div class="card-body">
+        <div class="flex items-center justify-between gap-2">
+          <h2 class="card-title">Tetris</h2>
+          <span class="card-tag" style="color:#00F0FF;border-color:rgba(0,240,255,.4)">بلوک</span>
+        </div>
+        <p class="card-desc">بلوک‌ها رو بچین، خط‌ها رو پاک کن. با هر مرحله سریع‌تر می‌شه.</p>
+        <span class="play-btn">▷ بازی کن</span>
+      </div>
+    </a>
+
     <!-- 🎈 Balloon Ride -->
     <a href="./Balloon-Ride.html" data-game="balloon" data-title="Balloon Ride" data-icon="🎈"
        data-accent="#3EE6A0" data-accent-dark="#1E7A52"
@@ -1176,6 +1230,11 @@
      ۲) بارگذاری رکوردها روی کارت‌ها
      ══════════════════════════════════════════ */
   const ALIAS = {
+    'pinkie-adventure': 'pinkie-adventure',
+    'pinkie': 'pinkie-adventure',
+    'adventure': 'pinkie-adventure',
+    'breakout': 'breakout',
+    'tetris': 'tetris',
     'balloon': 'balloon', 'balloon-ride': 'balloon',
     'pancake': 'pancake', 'pancake-tower': 'pancake',
     'simon': 'simon', 'simon-says': 'simon',
@@ -1435,6 +1494,9 @@
   ];
 
   const GAME_META = {
+    'pinkie-adventure': { icon: '🍰', name: 'Pinkie Adventure' },
+    'breakout': { icon: '🧱', name: 'Breakout' },
+    'tetris':  { icon: '🎮', name: 'Tetris' },
     'balloon': { icon: '🎈', name: 'Balloon Ride' },
     'pancake': { icon: '🥞', name: 'Pancake Tower' },
     'simon':   { icon: '🎨', name: 'Simon Says' },

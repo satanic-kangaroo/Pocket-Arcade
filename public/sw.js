@@ -7,6 +7,8 @@ const PRECACHE = [
   './manifest.json',
   './icon.svg',
   './score.js',
+  '/breakout.html',
+  '/tetris.html',
   './Balloon-Ride.html',
   './Pancake-Tower.html',
   './Simon-Says.html',

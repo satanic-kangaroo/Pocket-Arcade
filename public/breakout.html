@@ -1,0 +1,1559 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#06080F">
+<title>🧱 Breakout</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Vazirmatn:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  html, body { height: 100%; margin: 0; overscroll-behavior: none; }
+  body {
+    font-family: 'Vazirmatn', 'Press Start 2P', system-ui, -apple-system, sans-serif;
+    background: #06080F;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none; -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    color: #E2E8F0;
+    touch-action: manipulation;
+  }
+  .wrap { min-height: 100vh; min-height: 100dvh; }
+
+  #stage { touch-action: none; position: relative; }
+  #game { display: block; width: 100%; height: 100%; }
+
+  .hud-item {
+    background: rgba(11,15,26,0.7);
+    border: 1.5px solid rgba(100,116,139,0.35);
+    border-radius: 10px;
+    padding: 6px 10px;
+    display: flex; flex-direction: column; align-items: center; gap: 1px;
+    flex: 1; min-width: 0;
+  }
+  .hud-label {
+    font-size: 0.55rem; color: #64748B;
+    letter-spacing: 0.08em; text-transform: uppercase;
+  }
+  .hud-value {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.85rem;
+    color: #00F0FF;
+    letter-spacing: 0.02em;
+  }
+  .hud-value.pink { color: #FF4D8F; }
+  .hud-value.yellow { color: #FFD700; }
+
+  .icon-btn {
+    width: 2rem; height: 2rem;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 0.55rem;
+    background: rgba(11,15,26,0.7);
+    border: 1.5px solid rgba(100,116,139,0.35);
+    color: #94A3B8;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all .15s;
+    font-family: inherit;
+  }
+  .icon-btn:hover { background: rgba(30,41,59,0.8); color: #E2E8F0; }
+  .icon-btn:active { transform: scale(0.93); }
+
+  .modal {
+    position: fixed; inset: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: center;
+    padding: 1rem;
+    opacity: 0; visibility: hidden;
+    transition: opacity .22s ease, visibility 0s linear .22s;
+  }
+  .modal.open {
+    opacity: 1; visibility: visible;
+    transition: opacity .22s ease, visibility 0s;
+  }
+  .modal-backdrop {
+    position: absolute; inset: 0;
+    background: rgba(3,5,10,0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  .modal-panel {
+    position: relative;
+    width: 100%; max-width: 22rem;
+    border-radius: 1.25rem;
+    background: linear-gradient(180deg, #131C2E 0%, #0B1220 100%);
+    border: 2px solid rgba(71,85,105,0.6);
+    box-shadow: 0 32px 60px -18px rgba(0,0,0,0.9), 0 0 60px -20px #00F0FF;
+    transform: translateY(20px) scale(0.96);
+    transition: transform .3s cubic-bezier(.22,1,.36,1);
+    overflow: hidden;
+    padding: 1.5rem 1.25rem 1.25rem;
+    text-align: center;
+  }
+  .modal.open .modal-panel { transform: translateY(0) scale(1); }
+  .modal-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 1.3rem;
+    color: #00F0FF;
+    text-shadow: 0 0 20px rgba(0,240,255,0.6);
+    margin: 0 0 0.5rem;
+    letter-spacing: 0.05em;
+  }
+  .modal-title.pink { color: #FF4D8F; text-shadow: 0 0 20px rgba(255,77,143,0.6); }
+  .modal-title.gold { color: #FFD700; text-shadow: 0 0 20px rgba(255,215,0,0.6); }
+  .modal-sub {
+    font-size: 0.8rem; color: #94A3B8;
+    margin: 0 0 1.25rem;
+  }
+  .modal-stats {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  .modal-stat {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(71,85,105,0.35);
+    border-radius: 0.75rem;
+    padding: 0.55rem;
+  }
+  .modal-stat-label {
+    font-size: 0.6rem; color: #64748B;
+    letter-spacing: 0.05em;
+    margin-bottom: 3px;
+  }
+  .modal-stat-val {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.85rem;
+    color: #00F0FF;
+  }
+  .modal-btn {
+    width: 100%;
+    padding: 0.85rem;
+    border-radius: 0.75rem;
+    font-family: inherit;
+    font-size: 0.88rem;
+    font-weight: 800;
+    border: none;
+    cursor: pointer;
+    transition: transform .1s, box-shadow .1s, filter .15s;
+    margin-top: 0.5rem;
+  }
+  .modal-btn.primary {
+    background: linear-gradient(180deg, #00F0FF 0%, #00A0D0 100%);
+    color: #06080F;
+    box-shadow: 0 4px 0 0 #005070, 0 0 20px -4px #00F0FF;
+  }
+  .modal-btn.primary:active { transform: translateY(3px); box-shadow: 0 1px 0 0 #005070; }
+  .modal-btn.secondary {
+    background: rgba(255,255,255,0.05);
+    color: #CBD5E1;
+    border: 1px solid rgba(71,85,105,0.5);
+  }
+  .modal-btn.secondary:active { transform: translateY(3px); }
+
+  .powerup-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 0.6rem;
+    font-weight: 700;
+    border: 1px solid;
+    animation: puPulse 1.4s ease-in-out infinite;
+  }
+  @keyframes puPulse {
+    0%,100% { opacity: 1; }
+    50%     { opacity: 0.55; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body class="wrap flex flex-col items-center justify-center p-2 md:p-4">
+
+<div class="w-full max-w-[420px] flex flex-col gap-2">
+
+  <!-- ═══ هدر ═══ -->
+  <div class="flex items-center gap-2">
+    <button id="muteBtn" class="icon-btn" type="button" title="صدا">🔊</button>
+    <div class="hud-item">
+      <span class="hud-label">SCORE</span>
+      <span class="hud-value" id="scoreEl">000000</span>
+    </div>
+    <div class="hud-item">
+      <span class="hud-label">LEVEL</span>
+      <span class="hud-value pink" id="levelEl">1</span>
+    </div>
+    <div class="hud-item">
+      <span class="hud-label">LIVES</span>
+      <span class="hud-value yellow" id="livesEl">❤❤❤</span>
+    </div>
+    <button id="pauseBtn" class="icon-btn" type="button" title="توقف">⏸</button>
+  </div>
+
+  <!-- ═══ صحنه ═══ -->
+  <div id="stage" class="relative w-full aspect-[400/600] rounded-2xl overflow-hidden border-2 border-slate-800">
+    <canvas id="game"></canvas>
+
+    <!-- مودال شروع -->
+    <div id="startModal" class="modal open" role="dialog">
+      <div class="modal-backdrop"></div>
+      <div class="modal-panel">
+        <div class="text-4xl mb-2">🧱</div>
+        <h1 class="modal-title">BREAKOUT</h1>
+        <p class="modal-sub">آجرها رو بشکن، power-up جمع کن</p>
+        <div class="text-[10px] text-slate-500 leading-relaxed mb-3 text-right">
+          <div class="mb-1">👆 انگشتت رو بکش تا پدال حرکت کنه</div>
+          <div class="mb-1">🖱 ماوس یا کلید ← → برای دسکتاپ</div>
+          <div class="mb-1">✨ power-up ها رو با پدال بگیر</div>
+          <div>💥 هر آجر رنگی امتیاز متفاوتی داره</div>
+        </div>
+        <button id="startBtn" class="modal-btn primary" type="button">شروع بازی</button>
+      </div>
+    </div>
+
+    <!-- مودال باخت -->
+    <div id="overModal" class="modal" role="dialog">
+      <div class="modal-backdrop"></div>
+      <div class="modal-panel">
+        <div class="text-4xl mb-2">💥</div>
+        <h2 class="modal-title pink">GAME OVER</h2>
+        <p class="modal-sub">توپ‌ها تموم شدن!</p>
+        <div class="modal-stats">
+          <div class="modal-stat">
+            <div class="modal-stat-label">امتیاز</div>
+            <div class="modal-stat-val" id="finalScore">0</div>
+          </div>
+          <div class="modal-stat">
+            <div class="modal-stat-label">مرحله</div>
+            <div class="modal-stat-val" id="finalLevel">1</div>
+          </div>
+        </div>
+        <button id="restartBtn" class="modal-btn primary" type="button">دوباره بازی کن</button>
+        <button id="menuBtn" class="modal-btn secondary" type="button">منو</button>
+      </div>
+    </div>
+
+    <!-- مودال برد مرحله -->
+    <div id="winModal" class="modal" role="dialog">
+      <div class="modal-backdrop"></div>
+      <div class="modal-panel">
+        <div class="text-4xl mb-2">🏆</div>
+        <h2 class="modal-title gold">مرحله <span id="winLevel">1</span> تموم شد!</h2>
+        <p class="modal-sub">آماده‌ی مرحله‌ی بعدی هستی؟</p>
+        <div class="modal-stats">
+          <div class="modal-stat">
+            <div class="modal-stat-label">امتیاز</div>
+            <div class="modal-stat-val" id="winScore">0</div>
+          </div>
+          <div class="modal-stat">
+            <div class="modal-stat-label">جان باقی‌مونده</div>
+            <div class="modal-stat-val" id="winLives">3</div>
+          </div>
+        </div>
+        <button id="nextLevelBtn" class="modal-btn primary" type="button">مرحله بعدی</button>
+      </div>
+    </div>
+
+    <!-- مودال Pause -->
+    <div id="pauseModal" class="modal" role="dialog">
+      <div class="modal-backdrop"></div>
+      <div class="modal-panel">
+        <div class="text-4xl mb-2">⏸</div>
+        <h2 class="modal-title">PAUSED</h2>
+        <p class="modal-sub">برای ادامه دکمه رو بزن</p>
+        <button id="resumeBtn" class="modal-btn primary" type="button">ادامه</button>
+      </div>
+    </div>
+
+    <!-- Power-up active badges -->
+    <div id="puBar" class="absolute top-2 left-2 flex flex-col gap-1 pointer-events-none z-10"></div>
+  </div>
+
+  <!-- راهنما -->
+  <div class="text-center text-[9px] text-slate-600 mt-1">
+    <span class="px-font" style="font-family:'Press Start 2P',monospace">← → | Mouse | Touch | P=Pause</span>
+  </div>
+
+</div>
+
+<script src="./score.js"></script>
+<script>
+(function () {
+'use strict';
+
+/* ══════════════════════════════════════════
+   ۱) بوم و تنظیمات
+   ══════════════════════════════════════════ */
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+
+const W = 400, H = 600;
+
+function resizeCanvas() {
+  const rect = canvas.getBoundingClientRect();
+  if (rect.width < 2) return;
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+  const pw = Math.round(rect.width * dpr);
+  const ph = Math.round(rect.height * dpr);
+  if (canvas.width !== pw || canvas.height !== ph) {
+    canvas.width = pw;
+    canvas.height = ph;
+  }
+  const sx = (rect.width / W) * dpr;
+  const sy = (rect.height / H) * dpr;
+  ctx.setTransform(sx, 0, 0, sy, 0, 0);
+}
+window.addEventListener('resize', resizeCanvas);
+window.addEventListener('orientationchange', function () { setTimeout(resizeCanvas, 250); });
+if (window.ResizeObserver) new ResizeObserver(resizeCanvas).observe(canvas);
+
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+    if (typeof r === 'number') r = [r, r, r, r];
+    const [tl, tr, br, bl] = r;
+    this.moveTo(x + tl, y);
+    this.arcTo(x + w, y, x + w, y + h, tr);
+    this.arcTo(x + w, y + h, x, y + h, br);
+    this.arcTo(x, y + h, x, y, bl);
+    this.arcTo(x, y, x + w, y, tl);
+    this.closePath();
+    return this;
+  };
+}
+
+/* ══════════════════════════════════════════
+   ۲) DOM
+   ══════════════════════════════════════════ */
+const $scoreEl   = document.getElementById('scoreEl');
+const $levelEl   = document.getElementById('levelEl');
+const $livesEl   = document.getElementById('livesEl');
+const $startModal = document.getElementById('startModal');
+const $overModal  = document.getElementById('overModal');
+const $winModal   = document.getElementById('winModal');
+const $pauseModal = document.getElementById('pauseModal');
+const $finalScore = document.getElementById('finalScore');
+const $finalLevel = document.getElementById('finalLevel');
+const $winLevel   = document.getElementById('winLevel');
+const $winScore   = document.getElementById('winScore');
+const $winLives   = document.getElementById('winLives');
+const $startBtn   = document.getElementById('startBtn');
+const $restartBtn = document.getElementById('restartBtn');
+const $menuBtn    = document.getElementById('menuBtn');
+const $nextLevelBtn = document.getElementById('nextLevelBtn');
+const $resumeBtn  = document.getElementById('resumeBtn');
+const $muteBtn    = document.getElementById('muteBtn');
+const $pauseBtn   = document.getElementById('pauseBtn');
+const $stage      = document.getElementById('stage');
+const $puBar      = document.getElementById('puBar');
+
+/* ══════════════════════════════════════════
+   ۳) ثابت‌ها
+   ══════════════════════════════════════════ */
+const TAU = Math.PI * 2;
+
+const READY = 0, PLAY = 1, PAUSED = 2, LOSING = 3, OVER = 4, WIN = 5;
+
+const PADDLE_H = 14;
+const PADDLE_W_BASE = 84;
+const PADDLE_Y = H - 52;
+const PADDLE_SPEED = 8;
+
+const BALL_R = 7;
+const BALL_SPEED_START = 4.8;
+const BALL_SPEED_MAX = 9.5;
+const BALL_SPEED_INC = 0.022;
+const MAX_ANGLE = Math.PI / 3;   // 60°
+
+const BRICK_COLS = 8;
+const BRICK_MARGIN_X = 8;
+const BRICK_CELL_W = (W - BRICK_MARGIN_X * 2) / BRICK_COLS;   // 48
+const BRICK_W = BRICK_CELL_W - 4;
+const BRICK_H = 20;
+const BRICK_CELL_H = 24;
+const BRICK_TOP = 68;
+
+// رنگ و امتیاز هر ردیف (از بالا به پایین)
+const ROW_STYLES = [
+  { color: '#FF4D8F', glow: 'rgba(255,77,143,0.6)', points: 7, hp: 2 },
+  { color: '#C084FC', glow: 'rgba(192,132,252,0.6)', points: 5, hp: 2 },
+  { color: '#00F0FF', glow: 'rgba(0,240,255,0.6)', points: 3, hp: 1 },
+  { color: '#4ADE80', glow: 'rgba(74,222,128,0.6)', points: 2, hp: 1 },
+  { color: '#FFD700', glow: 'rgba(255,215,0,0.6)',  points: 1, hp: 1 },
+];
+
+const POWERUP_TYPES = {
+  wide:   { color: '#00F0FF', icon: '↔', label: 'پهن' },
+  multi:  { color: '#FF4D8F', icon: '⁂', label: 'چندتوپ' },
+  sticky: { color: '#FFD700', icon: '⊛', label: 'چسبنده' },
+  life:   { color: '#4ADE80', icon: '❤', label: 'جان' },
+  slow:   { color: '#C084FC', icon: '⏱', label: 'آرام' },
+};
+const POWERUP_KEYS = Object.keys(POWERUP_TYPES);
+
+/* ══════════════════════════════════════════
+   ۴) وضعیت بازی
+   ══════════════════════════════════════════ */
+let state = READY;
+
+let score = 0;
+let lives = 3;
+let level = 1;
+
+let bricks = [];
+let balls = [];
+let powerups = [];
+let particles = [];
+let floaters = [];
+
+let paddle = {
+  x: W / 2,
+  y: PADDLE_Y,
+  w: PADDLE_W_BASE,
+  targetW: PADDLE_W_BASE,
+  vx: 0,
+  prevX: W / 2,
+};
+
+let activePU = {
+  wide: 0,
+  sticky: 0,
+  slow: 0,
+};
+
+let shake = 0;
+let flashMsg = null;
+let flashMsgTimer = 0;
+let losingT = 0;
+let levelStartScore = 0;
+
+let muted = false;
+let frame = 0;
+let best = Number(localStorage.getItem('breakout_best') || 0);
+
+/* ══════════════════════════════════════════
+   ۵) ابزار
+   ══════════════════════════════════════════ */
+function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+function rand(a, b) { return a + Math.random() * (b - a); }
+
+/* ══════════════════════════════════════════
+   ۶) صدا
+   ══════════════════════════════════════════ */
+let actx = null;
+let masterGain = null;
+let sfxGain = null;
+let musicGain = null;
+
+function audio() {
+  if (!actx) {
+    try {
+      actx = new (window.AudioContext || window.webkitAudioContext)();
+      masterGain = actx.createGain();
+      masterGain.gain.value = 0.6;
+      masterGain.connect(actx.destination);
+
+      musicGain = actx.createGain();
+      musicGain.gain.value = muted ? 0 : 0.22;
+      musicGain.connect(masterGain);
+
+      sfxGain = actx.createGain();
+      sfxGain.gain.value = muted ? 0 : 0.85;
+      sfxGain.connect(masterGain);
+    } catch (e) { return null; }
+  }
+  if (actx.state === 'suspended') actx.resume();
+  return actx;
+}
+
+function synth(freq, dur, type, vol, time, dest) {
+  if (!actx) return;
+  const t = time != null ? time : actx.currentTime;
+  const o = actx.createOscillator();
+  const g = actx.createGain();
+  o.type = type;
+  o.frequency.setValueAtTime(freq, t);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(vol, t + 0.008);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g).connect(dest || sfxGain);
+  o.start(t);
+  o.stop(t + dur + 0.03);
+}
+
+function sfxPaddle() {
+  if (muted) return;
+  synth(440, 0.06, 'square', 0.06);
+  synth(660, 0.05, 'triangle', 0.05, actx.currentTime + 0.01);
+}
+function sfxWall() {
+  if (muted) return;
+  synth(280, 0.04, 'square', 0.04);
+}
+function sfxBrick(hp) {
+  if (muted) return;
+  const base = hp === 2 ? 240 : 520;
+  synth(base, 0.07, 'square', 0.06);
+}
+function sfxBrickBreak() {
+  if (muted) return;
+  synth(880, 0.08, 'square', 0.05);
+  synth(1200, 0.06, 'triangle', 0.04, actx.currentTime + 0.03);
+}
+function sfxPU() {
+  if (muted) return;
+  const t = actx.currentTime;
+  [523, 659, 784, 1046].forEach((f, i) => synth(f, 0.1, 'triangle', 0.07, t + i * 0.05));
+}
+function sfxLifeLost() {
+  if (muted) return;
+  const t = actx.currentTime;
+  [400, 330, 280, 220].forEach((f, i) => synth(f, 0.14, 'sawtooth', 0.06, t + i * 0.09));
+}
+function sfxLevelUp() {
+  if (muted) return;
+  const t = actx.currentTime;
+  [523, 659, 784, 1046, 1318].forEach((f, i) => synth(f, 0.14, 'square', 0.06, t + i * 0.07));
+}
+function sfxGameOver() {
+  if (muted) return;
+  const t = actx.currentTime;
+  [440, 415, 392, 370, 349, 330, 311, 294, 277, 262].forEach((f, i) => {
+    synth(f, 0.2, 'sawtooth', 0.07, t + i * 0.08);
+  });
+}
+
+/* ── موسیقی ambient ── */
+const BASS_LINE = ['C2','C2','G2','G2','A2','A2','F2','F2'];
+let musicPlaying = false;
+let musicNext = 0;
+let musicStep = 0;
+
+function scheduleMusic() {
+  if (!musicPlaying || muted || !actx) return;
+  const now = actx.currentTime;
+  const stepDur = 0.35;
+
+  while (musicNext < now + 0.3) {
+    const note = BASS_LINE[musicStep % BASS_LINE.length];
+    const freqs = { C2: 65.41, D2: 73.42, E2: 82.41, F2: 87.31, G2: 98, A2: 110, B2: 123.47 };
+    if (freqs[note]) synth(freqs[note], 0.32, 'triangle', 0.06, musicNext, musicGain);
+    // یه نت زنگ بالاتر
+    if (musicStep % 4 === 0) {
+      const hi = { C2: 261.63, G2: 392, A2: 440, F2: 349.23 }[note] || 261;
+      synth(hi, 0.15, 'sine', 0.04, musicNext, musicGain);
+    }
+    musicNext += stepDur;
+    musicStep++;
+  }
+}
+
+/* ══════════════════════════════════════════
+   ۷) ذرات و متن‌های شناور
+   ══════════════════════════════════════════ */
+function burst(x, y, n, colors, spd, grav, size) {
+  for (let i = 0; i < n; i++) {
+    const a = rand(0, TAU), sp = rand(0.5, spd);
+    particles.push({
+      x: x, y: y,
+      vx: Math.cos(a) * sp,
+      vy: Math.sin(a) * sp - 0.5,
+      life: 1,
+      size: rand(2, size || 5),
+      color: colors[(Math.random() * colors.length) | 0],
+      grav: grav == null ? 0.15 : grav,
+    });
+  }
+}
+
+function addFloater(x, y, text, color, size) {
+  floaters.push({ x, y, text, color, size: size || 12, life: 1, vy: -1.2 });
+}
+
+function updateParticles(dt) {
+  const k = dt / 16.67;
+  for (const p of particles) {
+    p.x += p.vx * k;
+    p.y += p.vy * k;
+    p.vy += p.grav * k;
+    p.vx *= 0.985;
+    p.life -= 0.028 * k;
+  }
+  particles = particles.filter(p => p.life > 0);
+
+  for (const f of floaters) {
+    f.y += f.vy * k;
+    f.vy *= 0.96;
+    f.life -= 0.018 * k;
+  }
+  floaters = floaters.filter(f => f.life > 0);
+}
+
+function drawParticles() {
+  for (const p of particles) {
+    ctx.globalAlpha = Math.max(0, p.life);
+    ctx.fillStyle = p.color;
+    const s = p.size * p.life;
+    ctx.fillRect(p.x - s / 2, p.y - s / 2, s, s);
+  }
+  ctx.globalAlpha = 1;
+}
+
+function drawFloaters() {
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  for (const f of floaters) {
+    ctx.globalAlpha = clamp(f.life * 1.4, 0, 1);
+    ctx.font = 'bold ' + f.size + "px 'Press Start 2P', monospace";
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = 'rgba(0,0,0,0.85)';
+    ctx.strokeText(f.text, f.x, f.y);
+    ctx.fillStyle = f.color;
+    ctx.fillText(f.text, f.x, f.y);
+  }
+  ctx.globalAlpha = 1;
+}
+
+/* ══════════════════════════════════════════
+   ۸) ساخت آجرها
+   ══════════════════════════════════════════ */
+function buildLevel(lvl) {
+  bricks = [];
+  const rows = Math.min(6, 4 + Math.floor(lvl / 2));
+
+  for (let r = 0; r < rows; r++) {
+    const style = ROW_STYLES[Math.min(r, ROW_STYLES.length - 1)];
+    for (let c = 0; c < BRICK_COLS; c++) {
+      // مرحله‌های بالاتر: شانس شکاف
+      if (lvl > 1 && Math.random() < 0.06 * Math.min(3, lvl - 1)) continue;
+
+      bricks.push({
+        x: BRICK_MARGIN_X + c * BRICK_CELL_W + 2,
+        y: BRICK_TOP + r * BRICK_CELL_H,
+        w: BRICK_W,
+        h: BRICK_H,
+        row: r,
+        hp: style.hp,
+        maxHp: style.hp,
+        color: style.color,
+        glow: style.glow,
+        points: style.points,
+        flash: 0,
+        dead: false,
+      });
+    }
+  }
+}
+
+function countAliveBricks() {
+  return bricks.filter(b => !b.dead).length;
+}
+
+/* ══════════════════════════════════════════
+   ۹) توپ‌ها
+   ══════════════════════════════════════════ */
+function createBall(x, y, vx, vy) {
+  return {
+    x: x, y: y,
+    prevX: x, prevY: y,
+    vx: vx, vy: vy,
+    r: BALL_R,
+    speed: Math.sqrt(vx * vx + vy * vy),
+    stuck: true,
+    stuckOffset: 0,
+    trail: [],
+  };
+}
+
+function resetBallOnPaddle() {
+  balls = [createBall(
+    paddle.x,
+    paddle.y - BALL_R - 2,
+    0, 0
+  )];
+  balls[0].stuck = true;
+  balls[0].stuckOffset = 0;
+  balls[0].speed = BALL_SPEED_START + (level - 1) * 0.3;  // ← این خط رو اضافه کن
+}
+
+function launchBall(b) {
+  const angle = rand(-Math.PI / 6, Math.PI / 6);   // ±30°
+  b.vx = Math.sin(angle) * b.speed;
+  b.vy = -Math.cos(angle) * b.speed;
+  b.stuck = false;
+}
+
+function normalizeBall(b) {
+  const mag = Math.hypot(b.vx, b.vy) || 1;
+  b.vx = b.vx / mag * b.speed;
+  b.vy = b.vy / mag * b.speed;
+}
+
+/* ══════════════════════════════════════════
+   ۱۰) برخورد
+   ══════════════════════════════════════════ */
+function circleRect(cx, cy, r, rect) {
+  const nx = clamp(cx, rect.x, rect.x + rect.w);
+  const ny = clamp(cy, rect.y, rect.y + rect.h);
+  const dx = cx - nx, dy = cy - ny;
+  return dx * dx + dy * dy < r * r;
+}
+
+function bounceOffPaddle(b) {
+  const offset = clamp((b.x - paddle.x) / (paddle.w / 2), -1, 1);
+  const angle = offset * MAX_ANGLE;
+  b.speed = Math.min(b.speed + 0.06, BALL_SPEED_MAX);
+  b.vx = Math.sin(angle) * b.speed;
+  b.vy = -Math.abs(Math.cos(angle) * b.speed);
+
+  // اثر سرعت پدال
+  b.vx += paddle.vx * 0.28;
+  normalizeBall(b);
+
+  // حالت چسبنده
+  if (activePU.sticky > 0) {
+    b.stuck = true;
+    b.stuckOffset = b.x - paddle.x;
+    b.vx = 0;
+    b.vy = 0;
+  }
+
+  paddle.flash = 1;
+  burst(b.x, b.y, 6, ['#00F0FF', '#FFFFFF', '#C084FC'], 3, 0.1, 3);
+  sfxPaddle();
+}
+
+function updateBall(b, dt) {
+  const k = dt / 16.67;
+
+  if (b.stuck) {
+    b.x = paddle.x + b.stuckOffset;
+    b.y = paddle.y - b.r - 2;
+    b.prevX = b.x;
+    b.prevY = b.y;
+    return;
+  }
+
+  b.prevX = b.x;
+  b.prevY = b.y;
+
+  // حرکت با زیرگام برای CCD بهتر
+  const steps = Math.max(1, Math.ceil(Math.hypot(b.vx, b.vy) * k / 4));
+  const stepVx = b.vx * k / steps;
+  const stepVy = b.vy * k / steps;
+
+  for (let s = 0; s < steps; s++) {
+    b.x += stepVx;
+    b.y += stepVy;
+
+    // دیوارها
+    if (b.x - b.r < 0) { b.x = b.r; b.vx = Math.abs(b.vx); sfxWall(); shake = Math.max(shake, 2); }
+    else if (b.x + b.r > W) { b.x = W - b.r; b.vx = -Math.abs(b.vx); sfxWall(); shake = Math.max(shake, 2); }
+    if (b.y - b.r < 0) { b.y = b.r; b.vy = Math.abs(b.vy); sfxWall(); }
+
+    // پدال
+    if (b.vy > 0 &&
+        b.prevY + b.r <= paddle.y &&
+        b.y + b.r > paddle.y &&
+        b.x + b.r * 0.5 > paddle.x - paddle.w / 2 &&
+        b.x - b.r * 0.5 < paddle.x + paddle.w / 2) {
+      b.y = paddle.y - b.r;
+      bounceOffPaddle(b);
+    }
+
+    // آجرها
+    for (const brick of bricks) {
+      if (brick.dead) continue;
+      if (!circleRect(b.x, b.y, b.r, brick)) continue;
+
+      // تشخیص سمت برخورد
+      const fromTop = b.prevY + b.r <= brick.y;
+      const fromBottom = b.prevY - b.r >= brick.y + brick.h;
+      const fromLeft = b.prevX + b.r <= brick.x;
+      const fromRight = b.prevX - b.r >= brick.x + brick.w;
+
+      if (fromTop) { b.y = brick.y - b.r; b.vy = -Math.abs(b.vy); }
+      else if (fromBottom) { b.y = brick.y + brick.h + b.r; b.vy = Math.abs(b.vy); }
+      else if (fromLeft) { b.x = brick.x - b.r; b.vx = -Math.abs(b.vx); }
+      else if (fromRight) { b.x = brick.x + brick.w + b.r; b.vx = Math.abs(b.vx); }
+      else {
+        // fallback: برعکس کن
+        b.vy = -b.vy;
+      }
+
+      hitBrick(brick, b);
+      break;   // فقط یک برخورد در هر زیرگام
+    }
+  }
+
+  // سرعت را نگه‌دار
+  const sp = Math.hypot(b.vx, b.vy);
+  b.speed = Math.min(b.speed + BALL_SPEED_INC * 0, BALL_SPEED_MAX);
+  if (sp > 0) { b.vx = b.vx / sp * b.speed; b.vy = b.vy / sp * b.speed; }
+
+  // رد حرکت
+  b.trail.push({ x: b.x, y: b.y });
+  if (b.trail.length > 10) b.trail.shift();
+
+  // افتادن؟
+  if (b.y - b.r > H) {
+    b.dead = true;
+  }
+}
+
+function hitBrick(brick, ball) {
+  brick.hp--;
+  brick.flash = 1;
+  shake = Math.max(shake, 3);
+
+  if (brick.hp <= 0) {
+    brick.dead = true;
+    const pts = brick.points * level;
+    score += pts;
+    updateHUD();
+
+    // ذرات
+    burst(
+      brick.x + brick.w / 2,
+      brick.y + brick.h / 2,
+      14,
+      [brick.color, '#FFFFFF', brick.glow.replace(/[\d.]+\)$/, '1)')],
+      4.5, 0.15, 5
+    );
+
+    addFloater(brick.x + brick.w / 2, brick.y + brick.h / 2, '+' + pts, brick.color, 11);
+    sfxBrickBreak();
+
+    // احتمال power-up
+    if (Math.random() < 0.11) {
+      spawnPowerup(brick.x + brick.w / 2, brick.y + brick.h / 2);
+    }
+  } else {
+    sfxBrick(brick.hp);
+    burst(ball.x, ball.y, 5, [brick.color, '#FFFFFF'], 2.5, 0.1, 3);
+  }
+}
+
+/* ══════════════════════════════════════════
+   ۱۱) Power-up ها
+   ══════════════════════════════════════════ */
+function spawnPowerup(x, y) {
+  const type = POWERUP_KEYS[(Math.random() * POWERUP_KEYS.length) | 0];
+  powerups.push({
+    x: x, y: y,
+    vx: rand(-0.3, 0.3),
+    vy: 1.4,
+    r: 12,
+    type: type,
+    t: 0,
+    dead: false,
+  });
+}
+
+function applyPowerup(pu) {
+  const meta = POWERUP_TYPES[pu.type];
+  sfxPU();
+  burst(pu.x, pu.y, 16, [meta.color, '#FFFFFF'], 5, 0.08, 5);
+  addFloater(pu.x, pu.y - 20, meta.icon + ' ' + meta.label, meta.color, 12);
+
+  switch (pu.type) {
+    case 'wide':
+      activePU.wide = 9000;
+      paddle.targetW = PADDLE_W_BASE * 1.55;
+      break;
+    case 'multi':
+      // هر توپ موجود → به دو تا تبدیل شه
+      const newBalls = [];
+      for (const b of balls) {
+        if (b.stuck) continue;
+        newBalls.push(createBall(b.x, b.y, b.vx - 1.2, b.vy - 0.5));
+        newBalls.push(createBall(b.x, b.y, b.vx + 1.2, b.vy - 0.5));
+      }
+      for (const nb of newBalls) {
+        nb.stuck = false;
+        balls.push(nb);
+      }
+      break;
+    case 'sticky':
+      activePU.sticky = 7000;
+      break;
+    case 'life':
+      lives = Math.min(lives + 1, 9);
+      updateHUD();
+      break;
+    case 'slow':
+      activePU.slow = 6000;
+      for (const b of balls) b.speed *= 0.72;
+      break;
+  }
+  updatePUBar();
+}
+
+function updatePowerups(dt) {
+  const k = dt / 16.67;
+  for (const pu of powerups) {
+    pu.t += k;
+    pu.x += pu.vx * k;
+    pu.y += pu.vy * k;
+    pu.vy = Math.min(pu.vy + 0.02 * k, 4.5);
+    if (pu.x < pu.r) { pu.x = pu.r; pu.vx = Math.abs(pu.vx); }
+    if (pu.x > W - pu.r) { pu.x = W - pu.r; pu.vx = -Math.abs(pu.vx); }
+
+    // برخورد با پدال
+    if (pu.y + pu.r > paddle.y &&
+        pu.y - pu.r < paddle.y + PADDLE_H &&
+        pu.x + pu.r > paddle.x - paddle.w / 2 &&
+        pu.x - pu.r < paddle.x + paddle.w / 2) {
+      pu.dead = true;
+      applyPowerup(pu);
+      continue;
+    }
+
+    // از پایین افتاد
+    if (pu.y - pu.r > H) pu.dead = true;
+  }
+  powerups = powerups.filter(p => !p.dead);
+}
+
+function updateActivePU(dt) {
+  let changed = false;
+  for (const key in activePU) {
+    if (activePU[key] > 0) {
+      activePU[key] = Math.max(0, activePU[key] - dt);
+      if (activePU[key] === 0) {
+        changed = true;
+        if (key === 'wide') paddle.targetW = PADDLE_W_BASE;
+      }
+    }
+  }
+  if (changed) updatePUBar();
+}
+
+function updatePUBar() {
+  let html = '';
+  for (const key in activePU) {
+    if (activePU[key] > 0) {
+      const meta = POWERUP_TYPES[key];
+      const sec = Math.ceil(activePU[key] / 1000);
+      html +=
+        '<span class="powerup-badge" style="color:' + meta.color + ';border-color:' + meta.color + '50;background:' + meta.color + '15">' +
+          '<span>' + meta.icon + '</span>' +
+          '<span>' + meta.label + '</span>' +
+          '<span style="opacity:.6">' + sec + 's</span>' +
+        '</span>';
+    }
+  }
+  $puBar.innerHTML = html;
+}
+
+/* ══════════════════════════════════════════
+   ۱۲) به‌روزرسانی
+   ══════════════════════════════════════════ */
+function update(dt) {
+  frame++;
+
+  if (musicPlaying && actx) scheduleMusic();
+
+  updateParticles(dt);
+
+  if (shake > 0) { shake *= Math.pow(0.86, dt / 16.67); if (shake < 0.3) shake = 0; }
+  if (flashMsgTimer > 0) {
+    flashMsgTimer -= dt;
+    if (flashMsgTimer <= 0) flashMsg = null;
+  }
+
+  // smoothing پدال
+  paddle.x += (paddle.targetX - paddle.x) * 0.5;
+  paddle.x = clamp(paddle.x, paddle.w / 2, W - paddle.w / 2);
+  paddle.vx = paddle.x - paddle.prevX;
+  paddle.prevX = paddle.x;
+
+  // عرض پدال (نرم)
+  if (Math.abs(paddle.w - paddle.targetW) > 0.1) {
+    paddle.w += (paddle.targetW - paddle.w) * 0.2;
+  }
+
+  if (state === LOSING) {
+    losingT += dt;
+    if (losingT > 900) {
+      if (lives > 0) {
+        // ریست توپ
+        resetBallOnPaddle();
+        balls[0].speed = BALL_SPEED_START + (level - 1) * 0.3;
+        state = PLAY;
+      } else {
+        finishGameOver();
+      }
+    }
+    return;
+  }
+
+  if (state !== PLAY) return;
+
+  // توپ‌ها
+  for (const b of balls) updateBall(b, dt);
+  balls = balls.filter(b => !b.dead);
+
+  if (balls.length === 0) {
+    lives--;
+    updateHUD();
+    state = LOSING;
+    losingT = 0;
+    shake = 18;
+    sfxLifeLost();
+    // پاک کردن power-up ها
+    powerups = [];
+    activePU.wide = activePU.sticky = activePU.slow = 0;
+    paddle.targetW = PADDLE_W_BASE;
+    updatePUBar();
+    return;
+  }
+
+  // power-up ها
+  updatePowerups(dt);
+  updateActivePU(dt);
+
+  // چک برد مرحله
+  if (countAliveBricks() === 0) {
+    state = WIN;
+    musicPlaying = false;
+    sfxLevelUp();
+    showWinModal();
+    return;
+  }
+
+  // اثر گلو
+  for (const b of bricks) {
+    if (b.flash > 0) { b.flash -= 0.06 * (dt / 16.67); if (b.flash < 0) b.flash = 0; }
+  }
+  if (paddle.flash > 0) paddle.flash -= 0.05 * (dt / 16.67);
+}
+
+/* ══════════════════════════════════════════
+   ۱۳) ورودی
+   ══════════════════════════════════════════ */
+let pointerActive = false;
+
+function stageCoords(clientX, clientY) {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: (clientX - rect.left) / rect.width * W,
+    y: (clientY - rect.top) / rect.height * H,
+  };
+}
+
+function movePaddleTo(x) {
+  if (state !== PLAY) return;
+  paddle.targetX = clamp(x, paddle.w / 2, W - paddle.w / 2);
+}
+
+$stage.addEventListener('pointerdown', function (e) {
+  if (e.target !== canvas) return;
+  e.preventDefault();
+  pointerActive = true;
+
+  if (state === READY || state === OVER) return;
+
+  const c = stageCoords(e.clientX, e.clientY);
+  movePaddleTo(c.x);
+
+  // اگه توپ چسبیده، آزادش کن
+  for (const b of balls) {
+    if (b.stuck) launchBall(b);
+  }
+  if (canvas.setPointerCapture && e.pointerId != null) {
+    try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
+  }
+}, { passive: false });
+
+$stage.addEventListener('pointermove', function (e) {
+  if (!pointerActive) return;
+  e.preventDefault();
+  const c = stageCoords(e.clientX, e.clientY);
+  movePaddleTo(c.x);
+}, { passive: false });
+
+window.addEventListener('pointerup', function () { pointerActive = false; });
+window.addEventListener('pointercancel', function () { pointerActive = false; });
+
+// keyboard
+const keys = { left: false, right: false };
+
+window.addEventListener('keydown', function (e) {
+  if (state === READY || state === OVER) {
+    if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); startGame(); }
+    return;
+  }
+  if (e.code === 'KeyP' || e.code === 'Escape') {
+    e.preventDefault();
+    if (state === PLAY) togglePause();
+    else if (state === PAUSED) resumeGame();
+    return;
+  }
+  if (state === WIN) {
+    if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); nextLevel(); }
+    return;
+  }
+  if (state !== PLAY) return;
+
+  if (e.code === 'ArrowLeft' || e.code === 'KeyA') { e.preventDefault(); keys.left = true; }
+  if (e.code === 'ArrowRight' || e.code === 'KeyD') { e.preventDefault(); keys.right = true; }
+  if (e.code === 'Space') {
+    e.preventDefault();
+    for (const b of balls) if (b.stuck) launchBall(b);
+  }
+}, { passive: false });
+
+window.addEventListener('keyup', function (e) {
+  if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = false;
+  if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = false;
+});
+
+// درخواست‌های کیبورد هر فریم در update — پدال با کلید
+// اینکار رو تو update انجام میدیم
+const _origUpdate = update;
+function updateWithKeys(dt) {
+  if (state === PLAY && (keys.left || keys.right)) {
+    const dx = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
+    movePaddleTo(paddle.targetX + dx * PADDLE_SPEED);
+  }
+  _origUpdate(dt);
+}
+
+/* ══════════════════════════════════════════
+   ۱۴) رسم
+   ══════════════════════════════════════════ */
+function drawBackground() {
+  ctx.fillStyle = '#08060F';
+  ctx.fillRect(0, 0, W, H);
+
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, 'rgba(20,15,40,0.65)');
+  g.addColorStop(0.5, 'rgba(10,8,25,0.4)');
+  g.addColorStop(1, 'rgba(5,3,15,0.7)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+}
+
+function drawBrick(b) {
+  const isBroken = b.hp <= 1;
+  const alpha = b.hp === 2 ? 1 : 0.82;
+  const x = b.x, y = b.y, w = b.w, h = b.h;
+
+  // Outer glow
+  ctx.globalAlpha = 0.28 * alpha;
+  ctx.fillStyle = b.color;
+  ctx.fillRect(x - 2, y - 2, w + 4, h + 4);
+
+  // Main body
+  ctx.globalAlpha = alpha;
+  const grad = ctx.createLinearGradient(0, y, 0, y + h);
+  grad.addColorStop(0, b.color);
+  grad.addColorStop(1, shadeColor(b.color, -0.35));
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, 3);
+  ctx.fill();
+
+  // Top highlight
+  ctx.fillStyle = 'rgba(255,255,255,0.45)';
+  ctx.fillRect(x + 3, y + 2, w - 6, 2);
+
+  // Bottom shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.35)';
+  ctx.fillRect(x + 3, y + h - 4, w - 6, 2);
+
+  // Crack (برای آجرهای دوتیکه که یک ضربه خوردن)
+  if (b.hp === 1 && b.maxHp === 2) {
+    ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(x + w * 0.3, y + 2);
+    ctx.lineTo(x + w * 0.4, y + h * 0.5);
+    ctx.lineTo(x + w * 0.35, y + h * 0.7);
+    ctx.lineTo(x + w * 0.55, y + h - 2);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(x + w * 0.7, y + 3);
+    ctx.lineTo(x + w * 0.6, y + h * 0.4);
+    ctx.lineTo(x + w * 0.75, y + h - 3);
+    ctx.stroke();
+  }
+
+  // Flash
+  if (b.flash > 0) {
+    ctx.globalAlpha = b.flash * 0.85;
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.roundRect(x, y, w, h, 3);
+    ctx.fill();
+  }
+
+  ctx.globalAlpha = 1;
+}
+
+function shadeColor(hex, amt) {
+  const n = parseInt(hex.slice(1), 16);
+  let r = (n >> 16) & 0xff, g = (n >> 8) & 0xff, b = n & 0xff;
+  r = clamp(Math.round(r + 255 * amt), 0, 255);
+  g = clamp(Math.round(g + 255 * amt), 0, 255);
+  b = clamp(Math.round(b + 255 * amt), 0, 255);
+  return '#' + ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
+}
+
+function drawPaddle() {
+  const x = paddle.x - paddle.w / 2;
+  const y = paddle.y;
+  const w = paddle.w, h = PADDLE_H;
+
+  const color = activePU.sticky > 0 ? '#FFD700'
+              : activePU.wide > 0 ? '#00F0FF'
+              : '#00F0FF';
+
+  // Glow
+  ctx.globalAlpha = 0.4 + paddle.flash * 0.6;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.roundRect(x - 3, y - 3, w + 6, h + 6, 8);
+  ctx.fill();
+
+  // Body
+  ctx.globalAlpha = 1;
+  const grad = ctx.createLinearGradient(0, y, 0, y + h);
+  grad.addColorStop(0, '#FFFFFF');
+  grad.addColorStop(0.3, color);
+  grad.addColorStop(1, shadeColor(color, -0.4));
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, 7);
+  ctx.fill();
+
+  // Top highlight
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx.beginPath();
+  ctx.roundRect(x + 6, y + 2, w - 12, 2, 1);
+  ctx.fill();
+
+  // Flash overlay
+  if (paddle.flash > 0) {
+    ctx.globalAlpha = paddle.flash * 0.7;
+    ctx.fillStyle = '#FFFFFF';
+    ctx.beginPath();
+    ctx.roundRect(x, y, w, h, 7);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+}
+
+function drawBall(b) {
+  // Trail
+  for (let i = 0; i < b.trail.length; i++) {
+    const t = b.trail[i];
+    const frac = i / b.trail.length;
+    ctx.globalAlpha = frac * 0.35;
+    ctx.fillStyle = '#00F0FF';
+    ctx.beginPath();
+    ctx.arc(t.x, t.y, b.r * (0.3 + frac * 0.6), 0, TAU);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  // Outer glow
+  const glow = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r * 3.5);
+  glow.addColorStop(0, 'rgba(0,240,255,0.7)');
+  glow.addColorStop(0.4, 'rgba(0,240,255,0.25)');
+  glow.addColorStop(1, 'rgba(0,240,255,0)');
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.arc(b.x, b.y, b.r * 3.5, 0, TAU);
+  ctx.fill();
+
+  // Body
+  const g = ctx.createRadialGradient(b.x - b.r * 0.3, b.y - b.r * 0.35, 1, b.x, b.y, b.r);
+  g.addColorStop(0, '#FFFFFF');
+  g.addColorStop(0.6, '#A8F0FF');
+  g.addColorStop(1, '#00F0FF');
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.arc(b.x, b.y, b.r, 0, TAU);
+  ctx.fill();
+}
+
+function drawPowerup(pu) {
+  const meta = POWERUP_TYPES[pu.type];
+  const pulse = 1 + Math.sin(pu.t * 0.15) * 0.15;
+  const r = pu.r * pulse;
+
+  // Outer glow
+  const glow = ctx.createRadialGradient(pu.x, pu.y, 0, pu.x, pu.y, r * 2);
+  glow.addColorStop(0, meta.color + '90');
+  glow.addColorStop(1, meta.color + '00');
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.arc(pu.x, pu.y, r * 2, 0, TAU);
+  ctx.fill();
+
+  // Body
+  ctx.fillStyle = meta.color;
+  ctx.beginPath();
+  ctx.arc(pu.x, pu.y, r * 0.85, 0, TAU);
+  ctx.fill();
+
+  ctx.strokeStyle = '#FFFFFF';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(pu.x, pu.y, r * 0.85, 0, TAU);
+  ctx.stroke();
+
+  // Icon
+  ctx.fillStyle = '#06080F';
+  ctx.font = "bold 13px 'Press Start 2P', monospace";
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(meta.icon, pu.x, pu.y + 1);
+}
+
+function drawFlashMessage() {
+  if (!flashMsg) return;
+  const t = flashMsgTimer / 900;
+  const scale = 1 + (1 - t) * 0.3;
+  const alpha = Math.min(1, t * 2);
+
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.translate(W / 2, H / 2 - 60);
+  ctx.scale(scale, scale);
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  ctx.font = "bold 22px 'Press Start 2P', monospace";
+  ctx.lineWidth = 5;
+  ctx.strokeStyle = 'rgba(0,0,0,0.85)';
+  ctx.strokeText(flashMsg.text, 0, 0);
+
+  ctx.shadowColor = flashMsg.color;
+  ctx.shadowBlur = 24;
+  ctx.fillStyle = flashMsg.color;
+  ctx.fillText(flashMsg.text, 0, 0);
+  ctx.restore();
+}
+
+function drawDangerZone() {
+  // خط قرمز پایین (زون مرگ)
+  const t = (frame % 60) / 60;
+  const alpha = 0.15 + Math.sin(frame * 0.08) * 0.08;
+  const y = H - 20;
+  ctx.fillStyle = `rgba(255,77,143,${alpha})`;
+  ctx.fillRect(0, y, W, H - y);
+}
+
+function render() {
+  ctx.save();
+
+  if (shake > 0.5) {
+    ctx.translate(rand(-shake, shake) * 0.4, rand(-shake, shake) * 0.4);
+  }
+
+  drawBackground();
+  drawDangerZone();
+
+  // Bricks
+  for (const b of bricks) {
+    if (!b.dead) drawBrick(b);
+  }
+
+  // Power-ups
+  for (const pu of powerups) drawPowerup(pu);
+
+  // Balls
+  for (const b of balls) drawBall(b);
+
+  // Paddle
+  drawPaddle();
+
+  // Particles و floaters
+  drawParticles();
+  drawFloaters();
+
+  // Flash message
+  drawFlashMessage();
+
+  ctx.restore();
+}
+
+/* ══════════════════════════════════════════
+   ۱۵) حلقه
+   ══════════════════════════════════════════ */
+const STEP = 1000 / 60;
+let acc = 0, last = performance.now();
+
+function loop(now) {
+  acc += Math.min(now - last, 200);
+  last = now;
+
+  let guard = 0;
+  while (acc >= STEP && guard < 5) {
+    updateWithKeys(STEP);
+    acc -= STEP;
+    guard++;
+  }
+  if (guard >= 5) acc = 0;
+
+  render();
+  requestAnimationFrame(loop);
+}
+
+/* ══════════════════════════════════════════
+   ۱۶) شروع / ریست
+   ══════════════════════════════════════════ */
+function updateHUD() {
+  $scoreEl.textContent = String(score).padStart(6, '0');
+  $levelEl.textContent = String(level);
+  $livesEl.textContent = '❤'.repeat(Math.max(0, lives)) || '—';
+}
+
+function startGame() {
+  state = PLAY;
+  score = 0;
+  lives = 3;
+  level = 1;
+  particles = [];
+  floaters = [];
+  powerups = [];
+  shake = 0;
+  flashMsg = null;
+  activePU = { wide: 0, sticky: 0, slow: 0 };
+  updatePUBar();
+
+  paddle.w = PADDLE_W_BASE;
+  paddle.targetW = PADDLE_W_BASE;
+  paddle.x = paddle.targetX = paddle.prevX = W / 2;
+
+  buildLevel(level);
+  resetBallOnPaddle();
+  updateHUD();
+
+  $startModal.classList.remove('open');
+  $overModal.classList.remove('open');
+  $winModal.classList.remove('open');
+  $pauseModal.classList.remove('open');
+
+  audio();
+  musicPlaying = true;
+  musicNext = actx.currentTime + 0.1;
+  musicStep = 0;
+  levelStartScore = score;
+}
+
+function nextLevel() {
+  level++;
+  particles = [];
+  floaters = [];
+  powerups = [];
+  activePU = { wide: 0, sticky: 0, slow: 0 };
+  updatePUBar();
+
+  paddle.w = PADDLE_W_BASE;
+  paddle.targetW = PADDLE_W_BASE;
+  paddle.x = paddle.targetX = W / 2;
+
+  buildLevel(level);
+  resetBallOnPaddle();
+
+  // جان اضافی هر ۳ مرحله
+  if (level % 3 === 0) lives = Math.min(lives + 1, 9);
+
+  updateHUD();
+  $winModal.classList.remove('open');
+  state = PLAY;
+  musicPlaying = true;
+  musicNext = actx.currentTime + 0.1;
+}
+
+function showWinModal() {
+  $winLevel.textContent = String(level);
+  $winScore.textContent = String(score);
+  $winLives.textContent = String(lives);
+  $winModal.classList.add('open');
+}
+
+function finishGameOver() {
+  state = OVER;
+  musicPlaying = false;
+  sfxGameOver();
+  $finalScore.textContent = String(score);
+  $finalLevel.textContent = String(level);
+  $overModal.classList.add('open');
+
+  if (score > best) {
+    best = score;
+    localStorage.setItem('breakout_best', String(best));
+  }
+
+  if (window.ArcadeAPI) {
+    ArcadeAPI.saveScore('breakout', score, { meta: { level: level } });
+  }
+}
+
+function togglePause() {
+  if (state !== PLAY) return;
+  state = PAUSED;
+  musicPlaying = false;
+  $pauseModal.classList.add('open');
+}
+
+function resumeGame() {
+  if (state !== PAUSED) return;
+  state = PLAY;
+  musicPlaying = true;
+  musicNext = actx.currentTime + 0.05;
+  $pauseModal.classList.remove('open');
+}
+
+/* ══════════════════════════════════════════
+   ۱۷) دکمه‌ها
+   ══════════════════════════════════════════ */
+$startBtn.addEventListener('click', startGame);
+$restartBtn.addEventListener('click', startGame);
+$resumeBtn.addEventListener('click', resumeGame);
+$nextLevelBtn.addEventListener('click', nextLevel);
+
+$pauseBtn.addEventListener('click', function () {
+  if (state === PLAY) togglePause();
+  else if (state === PAUSED) resumeGame();
+});
+
+$menuBtn.addEventListener('click', function () {
+  state = READY;
+  musicPlaying = false;
+  $overModal.classList.remove('open');
+  $startModal.classList.add('open');
+});
+
+$muteBtn.addEventListener('click', function () {
+  muted = !muted;
+  $muteBtn.textContent = muted ? '🔇' : '🔊';
+  if (musicGain) musicGain.gain.value = muted ? 0 : 0.22;
+  if (sfxGain) sfxGain.gain.value = muted ? 0 : 0.85;
+});
+
+document.addEventListener('visibilitychange', function () {
+  if (document.hidden && state === PLAY) togglePause();
+});
+
+/* ══════════════════════════════════════════
+   ۱۸) شروع
+   ══════════════════════════════════════════ */
+resizeCanvas();
+window.addEventListener('load', function () { setTimeout(resizeCanvas, 60); });
+updateHUD();
+requestAnimationFrame(loop);
+
+})();
+</script>
+</body>
+</html>

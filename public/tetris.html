@@ -1,0 +1,1536 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#06080F">
+<title>🎮 Tetris</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Vazirmatn:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  html, body { height: 100%; margin: 0; overscroll-behavior: none; }
+  body {
+    font-family: 'Vazirmatn', 'Press Start 2P', system-ui, -apple-system, sans-serif;
+    background: #06080F;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none; -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    color: #E2E8F0;
+    touch-action: manipulation;
+  }
+  .wrap { min-height: 100vh; min-height: 100dvh; }
+
+  #stage {
+    touch-action: none;
+    position: relative;
+  }
+  #game {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* ── دکمه‌های لمسی ── */
+  .ctrl-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #0B0F1A;
+    background: linear-gradient(180deg, #E2E8F0 0%, #94A3B8 100%);
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 5px 0 0 rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.4);
+    transition: transform .06s, box-shadow .06s, filter .12s;
+    user-select: none;
+    font-family: inherit;
+    position: relative;
+    overflow: hidden;
+  }
+  .ctrl-btn:active, .ctrl-btn.pressed {
+    transform: translateY(4px);
+    box-shadow: 0 1px 0 0 rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+    filter: brightness(0.92);
+  }
+
+  .ctrl-btn.neon {
+    background: linear-gradient(180deg, #00F0FF 0%, #00A0D0 100%);
+    color: #06080F;
+    box-shadow: 0 5px 0 0 rgba(0,0,0,0.5), 0 0 20px -4px #00F0FF, inset 0 1px 0 rgba(255,255,255,0.4);
+  }
+  .ctrl-btn.neon-pink {
+    background: linear-gradient(180deg, #FF4D8F 0%, #B01A50 100%);
+    color: #FFFFFF;
+    box-shadow: 0 5px 0 0 rgba(0,0,0,0.5), 0 0 20px -4px #FF4D8F, inset 0 1px 0 rgba(255,255,255,0.3);
+  }
+  .ctrl-btn.neon-purple {
+    background: linear-gradient(180deg, #C084FC 0%, #7A4EB8 100%);
+    color: #06080F;
+    box-shadow: 0 5px 0 0 rgba(0,0,0,0.5), 0 0 20px -4px #C084FC, inset 0 1px 0 rgba(255,255,255,0.4);
+  }
+
+  /* ── هدر ── */
+  .hud-item {
+    background: rgba(11,15,26,0.7);
+    border: 1.5px solid rgba(100,116,139,0.35);
+    border-radius: 10px;
+    padding: 6px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    min-width: 0;
+    flex: 1;
+  }
+  .hud-label {
+    font-size: 0.55rem;
+    color: #64748B;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .hud-value {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.85rem;
+    color: #00F0FF;
+    letter-spacing: 0.02em;
+  }
+
+  /* ── مودال ── */
+  .modal {
+    position: fixed; inset: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: center;
+    padding: 1rem;
+    opacity: 0; visibility: hidden;
+    transition: opacity .22s ease, visibility 0s linear .22s;
+  }
+  .modal.open {
+    opacity: 1; visibility: visible;
+    transition: opacity .22s ease, visibility 0s;
+  }
+  .modal-backdrop {
+    position: absolute; inset: 0;
+    background: rgba(3,5,10,0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  .modal-panel {
+    position: relative;
+    width: 100%; max-width: 22rem;
+    border-radius: 1.25rem;
+    background: linear-gradient(180deg, #131C2E 0%, #0B1220 100%);
+    border: 2px solid rgba(71,85,105,0.6);
+    box-shadow: 0 32px 60px -18px rgba(0,0,0,0.9), 0 0 60px -20px #00F0FF;
+    transform: translateY(20px) scale(0.96);
+    transition: transform .3s cubic-bezier(.22,1,.36,1);
+    overflow: hidden;
+    padding: 1.5rem 1.25rem 1.25rem;
+    text-align: center;
+  }
+  .modal.open .modal-panel { transform: translateY(0) scale(1); }
+  .modal-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 1.4rem;
+    color: #00F0FF;
+    text-shadow: 0 0 20px rgba(0,240,255,0.6);
+    margin: 0 0 0.5rem;
+    letter-spacing: 0.05em;
+  }
+  .modal-sub {
+    font-size: 0.8rem; color: #94A3B8;
+    margin: 0 0 1.25rem;
+  }
+  .modal-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+  }
+  .modal-stat {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(71,85,105,0.35);
+    border-radius: 0.75rem;
+    padding: 0.6rem;
+  }
+  .modal-stat-label {
+    font-size: 0.6rem; color: #64748B;
+    letter-spacing: 0.05em;
+    margin-bottom: 3px;
+  }
+  .modal-stat-val {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.9rem;
+    color: #00F0FF;
+  }
+
+  .modal-btn {
+    width: 100%;
+    padding: 0.85rem;
+    border-radius: 0.75rem;
+    font-family: inherit;
+    font-size: 0.88rem;
+    font-weight: 800;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 0 0 rgba(0,0,0,0.4);
+    transition: transform .1s, box-shadow .1s, filter .15s;
+    margin-top: 0.5rem;
+  }
+  .modal-btn.primary {
+    background: linear-gradient(180deg, #00F0FF 0%, #00A0D0 100%);
+    color: #06080F;
+    box-shadow: 0 4px 0 0 #005070, 0 0 20px -4px #00F0FF;
+  }
+  .modal-btn.primary:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 0 #005070;
+  }
+  .modal-btn.secondary {
+    background: rgba(255,255,255,0.05);
+    color: #CBD5E1;
+    border: 1px solid rgba(71,85,105,0.5);
+  }
+  .modal-btn.secondary:active {
+    transform: translateY(3px);
+  }
+
+  /* ── پیام‌های شناور تو بازی ── */
+  @keyframes flashIn {
+    0% { transform: translate(-50%, -50%) scale(0.4); opacity: 0; }
+    20% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+    70% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(1.3); opacity: 0; }
+  }
+
+  /* ── دکمه صدا ── */
+  .icon-btn {
+    width: 2rem; height: 2rem;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 0.55rem;
+    background: rgba(11,15,26,0.7);
+    border: 1.5px solid rgba(100,116,139,0.35);
+    color: #94A3B8;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .icon-btn:hover { background: rgba(30,41,59,0.8); color: #E2E8F0; }
+  .icon-btn:active { transform: scale(0.93); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body class="wrap flex flex-col items-center justify-center p-2 md:p-4">
+
+<div class="w-full max-w-[440px] flex flex-col gap-2">
+
+  <!-- ═══ هدر ═══ -->
+  <div class="flex items-center gap-2">
+    <button id="muteBtn" class="icon-btn" type="button" title="صدا">🔊</button>
+    <div class="hud-item">
+      <span class="hud-label">SCORE</span>
+      <span class="hud-value" id="scoreEl">000000</span>
+    </div>
+    <div class="hud-item">
+      <span class="hud-label">LEVEL</span>
+      <span class="hud-value" id="levelEl">1</span>
+    </div>
+    <div class="hud-item">
+      <span class="hud-label">LINES</span>
+      <span class="hud-value" id="linesEl">0</span>
+    </div>
+    <button id="pauseBtn" class="icon-btn" type="button" title="توقف">⏸</button>
+  </div>
+
+  <!-- ═══ صحنه ═══ -->
+  <div id="stage" class="relative w-full aspect-[400/560] rounded-2xl overflow-hidden border-2 border-slate-800">
+    <canvas id="game"></canvas>
+
+    <!-- مودال شروع -->
+    <div id="startModal" class="modal open" role="dialog">
+      <div class="modal-backdrop"></div>
+      <div class="modal-panel">
+        <div class="text-4xl mb-2">🎮</div>
+        <h1 class="modal-title">TETRIS</h1>
+        <p class="modal-sub">آماده‌ای؟</p>
+        <div class="text-[10px] text-slate-500 leading-relaxed mb-3 text-right">
+          <div class="mb-1">🖱 سوایپ چپ/راست = حرکت</div>
+          <div class="mb-1">🖱 سوایپ پایین = افت سریع</div>
+          <div class="mb-1">👆 تپ = چرخش</div>
+          <div>⬆ سوایپ بالا = ذخیره (Hold)</div>
+        </div>
+        <button id="startBtn" class="modal-btn primary" type="button">شروع بازی</button>
+      </div>
+    </div>
+
+    <!-- مودال پایان -->
+    <div id="overModal" class="modal" role="dialog">
+      <div class="modal-backdrop"></div>
+      <div class="modal-panel">
+        <div class="text-4xl mb-2">💥</div>
+        <h2 class="modal-title" style="color:#FF4D8F;text-shadow:0 0 20px rgba(255,77,143,0.6)">GAME OVER</h2>
+        <p class="modal-sub">بلوک‌ها تموم شدن!</p>
+        <div class="modal-stats">
+          <div class="modal-stat">
+            <div class="modal-stat-label">امتیاز</div>
+            <div class="modal-stat-val" id="finalScore">0</div>
+          </div>
+          <div class="modal-stat">
+            <div class="modal-stat-label">خطوط</div>
+            <div class="modal-stat-val" id="finalLines">0</div>
+          </div>
+          <div class="modal-stat">
+            <div class="modal-stat-label">مرحله</div>
+            <div class="modal-stat-val" id="finalLevel">1</div>
+          </div>
+          <div class="modal-stat">
+            <div class="modal-stat-label">بهترین رکورد</div>
+            <div class="modal-stat-val" id="bestScore" style="color:#FFD166">—</div>
+          </div>
+        </div>
+        <button id="restartBtn" class="modal-btn primary" type="button">دوباره بازی کن</button>
+        <button id="menuBtn" class="modal-btn secondary" type="button">منو</button>
+      </div>
+    </div>
+
+    <!-- مودال Pause -->
+    <div id="pauseModal" class="modal" role="dialog">
+      <div class="modal-backdrop"></div>
+      <div class="modal-panel">
+        <div class="text-4xl mb-2">⏸</div>
+        <h2 class="modal-title">PAUSED</h2>
+        <p class="modal-sub">برای ادامه دکمه رو بزن</p>
+        <button id="resumeBtn" class="modal-btn primary" type="button">ادامه</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ کنترل‌ها ═══ -->
+  <div class="grid grid-cols-4 gap-2">
+    <button class="ctrl-btn neon" data-action="left" type="button" style="height:56px">◀</button>
+    <button class="ctrl-btn neon" data-action="down" type="button" style="height:56px">▼</button>
+    <button class="ctrl-btn neon" data-action="right" type="button" style="height:56px">▶</button>
+    <button class="ctrl-btn neon-purple" data-action="rotate" type="button" style="height:56px">↻</button>
+  </div>
+  <div class="grid grid-cols-2 gap-2">
+    <button class="ctrl-btn neon-pink" data-action="hardDrop" type="button" style="height:48px;font-size:0.75rem;letter-spacing:0.1em">DROP</button>
+    <button class="ctrl-btn neon-pink" data-action="hold" type="button" style="height:48px;font-size:0.75rem;letter-spacing:0.1em">HOLD</button>
+  </div>
+
+  <!-- راهنما -->
+  <div class="text-center text-[9px] text-slate-600 mt-1">
+    <span class="px-font">← → ↓ | R = چرخش | Space = DROP | C = HOLD | P = Pause</span>
+  </div>
+
+</div>
+
+<script src="./score.js"></script>
+<script>
+(function () {
+'use strict';
+
+/* ══════════════════════════════════════════
+   ۱) بوم و تنظیمات
+   ══════════════════════════════════════════ */
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+
+const W = 400, H = 560;
+const CELL = 28;
+const PREVIEW_CELL = 12;
+
+const COLS = 10, ROWS = 20;
+const PX = 60, PY = 0, PW = COLS * CELL, PH = ROWS * CELL;
+
+const HOLD_X = 4, HOLD_Y = 4, HOLD_W = 52, HOLD_H = 56;
+const NEXT_X = 344, NEXT_Y = 4, NEXT_W = 52, NEXT_H = 168;
+
+function resizeCanvas() {
+  const rect = canvas.getBoundingClientRect();
+  if (rect.width < 2) return;
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+  const pw = Math.round(rect.width * dpr);
+  const ph = Math.round(rect.height * dpr);
+  if (canvas.width !== pw || canvas.height !== ph) {
+    canvas.width = pw;
+    canvas.height = ph;
+  }
+  const sx = (rect.width / W) * dpr;
+  const sy = (rect.height / H) * dpr;
+  ctx.setTransform(sx, 0, 0, sy, 0, 0);
+}
+window.addEventListener('resize', resizeCanvas);
+window.addEventListener('orientationchange', function () { setTimeout(resizeCanvas, 250); });
+if (window.ResizeObserver) new ResizeObserver(resizeCanvas).observe(canvas);
+
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+    if (typeof r === 'number') r = [r, r, r, r];
+    const [tl, tr, br, bl] = r;
+    this.moveTo(x + tl, y);
+    this.arcTo(x + w, y, x + w, y + h, tr);
+    this.arcTo(x + w, y + h, x, y + h, br);
+    this.arcTo(x, y + h, x, y, bl);
+    this.arcTo(x, y, x + w, y, tl);
+    this.closePath();
+    return this;
+  };
+}
+
+/* ══════════════════════════════════════════
+   ۲) DOM
+   ══════════════════════════════════════════ */
+const $scoreEl   = document.getElementById('scoreEl');
+const $levelEl   = document.getElementById('levelEl');
+const $linesEl   = document.getElementById('linesEl');
+const $startModal = document.getElementById('startModal');
+const $overModal  = document.getElementById('overModal');
+const $pauseModal = document.getElementById('pauseModal');
+const $finalScore = document.getElementById('finalScore');
+const $finalLines = document.getElementById('finalLines');
+const $finalLevel = document.getElementById('finalLevel');
+const $bestScore  = document.getElementById('bestScore');
+const $startBtn   = document.getElementById('startBtn');
+const $restartBtn = document.getElementById('restartBtn');
+const $menuBtn    = document.getElementById('menuBtn');
+const $resumeBtn  = document.getElementById('resumeBtn');
+const $muteBtn    = document.getElementById('muteBtn');
+const $pauseBtn   = document.getElementById('pauseBtn');
+const $stage      = document.getElementById('stage');
+
+/* ══════════════════════════════════════════
+   ۳) قطعات
+   ══════════════════════════════════════════ */
+const PIECES = {
+  I: { color: '#00F0FF', matrix: [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]] },
+  O: { color: '#FFD700', matrix: [[1,1],[1,1]] },
+  T: { color: '#C084FC', matrix: [[0,1,0],[1,1,1],[0,0,0]] },
+  S: { color: '#4ADE80', matrix: [[0,1,1],[1,1,0],[0,0,0]] },
+  Z: { color: '#FF4D6D', matrix: [[1,1,0],[0,1,1],[0,0,0]] },
+  J: { color: '#4A9EFF', matrix: [[1,0,0],[1,1,1],[0,0,0]] },
+  L: { color: '#FF9F40', matrix: [[0,0,1],[1,1,1],[0,0,0]] },
+};
+
+const SPAWN_X = { I: 3, O: 4, T: 3, S: 3, Z: 3, J: 3, L: 3 };
+
+const KICKS = [
+  [0, 0], [-1, 0], [1, 0], [-2, 0], [2, 0], [0, -1], [-1, -1], [1, -1]
+];
+
+/* ══════════════════════════════════════════
+   ۴) وضعیت
+   ══════════════════════════════════════════ */
+const READY = 0, PLAY = 1, PAUSED = 2, DYING = 3, OVER = 4;
+let state = READY;
+
+let board = [];
+let current = null;
+let nextQueue = [];
+let holdType = null;
+let canHold = true;
+let bag = [];
+
+let score = 0, lines = 0, level = 1;
+let dropTimer = 0;
+let lockTimer = 0;
+let dyingT = 0;
+
+let particles = [];
+let shake = 0;
+let flashMsg = null;
+let flashMsgTimer = 0;
+
+let frame = 0;
+let muted = false;
+let best = Number(localStorage.getItem('tetris_best') || 0);
+
+/* ══════════════════════════════════════════
+   ۵) ابزار
+   ══════════════════════════════════════════ */
+function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+function rand(a, b) { return a + Math.random() * (b - a); }
+
+/* ══════════════════════════════════════════
+   ۶) صدا — Web Audio
+   ══════════════════════════════════════════ */
+let actx = null;
+let masterGain = null;
+let musicGain = null;
+let sfxGain = null;
+let musicFilter = null;
+
+function audio() {
+  if (!actx) {
+    try {
+      actx = new (window.AudioContext || window.webkitAudioContext)();
+      masterGain = actx.createGain();
+      masterGain.gain.value = 0.6;
+      masterGain.connect(actx.destination);
+
+      musicGain = actx.createGain();
+      musicGain.gain.value = muted ? 0 : 0.5;
+      musicFilter = actx.createBiquadFilter();
+      musicFilter.type = 'lowpass';
+      musicFilter.frequency.value = 3200;
+      musicFilter.Q.value = 0.8;
+      musicGain.connect(musicFilter);
+      musicFilter.connect(masterGain);
+
+      sfxGain = actx.createGain();
+      sfxGain.gain.value = muted ? 0 : 0.7;
+      sfxGain.connect(masterGain);
+    } catch (e) { return null; }
+  }
+  if (actx.state === 'suspended') actx.resume();
+  return actx;
+}
+
+/* ── نُت‌ها ── */
+const NOTE_FREQ = {
+  C2: 65.41, D2: 73.42, E2: 82.41, F2: 87.31, G2: 98.00, A2: 110.00, B2: 123.47,
+  C3: 130.81, D3: 146.83, E3: 164.81, F3: 174.61, G3: 196.00, A3: 220.00, B3: 246.94,
+  C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23, G4: 392.00, A4: 440.00, B4: 493.88,
+  C5: 523.25, D5: 587.33, E5: 659.25, F5: 698.46, G5: 783.99, A5: 880.00, B5: 987.77,
+  'F#4': 369.99, 'F#5': 739.99,
+};
+
+/* ── ملودی ── */
+const MELODY = [
+  'E5','B4','C5','D5','C5','B4','A4','A4',
+  'C5','E5','D5','C5','B4','B4','C5','D5',
+  'E5','C5','A4','A4','D5','F5','A5','G5',
+  'F5','E5','C5','E5','D5','C5','B4','B4',
+];
+const BASS = [
+  'E2',null,null,null, 'A2',null,null,null,
+  'E2',null,null,null, 'A2',null,null,null,
+  'E2',null,null,null, 'A2',null,null,null,
+  'C3',null,null,null, 'B2',null,null,null,
+];
+
+let musicPlaying = false;
+let musicNextTime = 0;
+let musicStep = 0;
+
+function scheduleMusic() {
+  if (!musicPlaying || !actx || muted) return;
+  const now = actx.currentTime;
+  const bpm = 130 + (level - 1) * 4;
+  const stepDur = 60 / bpm / 4;
+
+  while (musicNextTime < now + 0.2) {
+    const mel = MELODY[musicStep % MELODY.length];
+    const bas = BASS[musicStep % BASS.length];
+
+    if (mel && NOTE_FREQ[mel]) {
+      playSynth(NOTE_FREQ[mel], musicNextTime, stepDur * 0.85, 'square', 0.05, musicGain);
+    }
+    if (bas && NOTE_FREQ[bas]) {
+      playSynth(NOTE_FREQ[bas], musicNextTime, stepDur * 2.5, 'triangle', 0.08, musicGain);
+    }
+
+    musicNextTime += stepDur;
+    musicStep++;
+  }
+}
+
+function playSynth(freq, time, dur, type, vol, dest) {
+  const o = actx.createOscillator();
+  const g = actx.createGain();
+  o.type = type;
+  o.frequency.setValueAtTime(freq, time);
+  g.gain.setValueAtTime(0.0001, time);
+  g.gain.linearRampToValueAtTime(vol, time + 0.008);
+  g.gain.exponentialRampToValueAtTime(0.0001, time + dur);
+  o.connect(g).connect(dest || sfxGain);
+  o.start(time);
+  o.stop(time + dur + 0.02);
+}
+
+function sfxMove()   { if (muted) return; const t = actx.currentTime; playSynth(220, t, 0.04, 'square', 0.05, sfxGain); }
+function sfxRotate() { if (muted) return; const t = actx.currentTime; playSynth(440, t, 0.05, 'square', 0.05, sfxGain); }
+function sfxDrop()   { if (muted) return; const t = actx.currentTime; playSynth(160, t, 0.08, 'sawtooth', 0.05, sfxGain); }
+function sfxLock()   { if (muted) return; const t = actx.currentTime; playSynth(120, t, 0.08, 'triangle', 0.08, sfxGain); }
+function sfxHold()   { if (muted) return; const t = actx.currentTime; playSynth(660, t, 0.06, 'square', 0.05, sfxGain); }
+
+function sfxLineClear(count) {
+  if (muted) return;
+  const t = actx.currentTime;
+  const baseNotes = [523.25, 659.25, 783.99, 1046.5];
+  const notes = count === 4 ? [523, 659, 783, 1046, 1318, 1568] : baseNotes.slice(0, count + 1);
+  notes.forEach((f, i) => {
+    playSynth(f, t + i * 0.05, 0.12, 'square', 0.08, sfxGain);
+  });
+}
+
+function sfxLevelUp() {
+  if (muted) return;
+  const t = actx.currentTime;
+  [523, 659, 783, 1046].forEach((f, i) => playSynth(f, t + i * 0.07, 0.15, 'triangle', 0.08, sfxGain));
+}
+
+function sfxGameOver() {
+  if (muted) return;
+  const t = actx.currentTime;
+  [440, 415, 392, 370, 349, 330, 311, 294, 277, 262].forEach((f, i) => {
+    playSynth(f, t + i * 0.08, 0.2, 'sawtooth', 0.07, sfxGain);
+  });
+}
+
+/* ══════════════════════════════════════════
+   ۷) منطق تتریس
+   ══════════════════════════════════════════ */
+function createBoard() {
+  board = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
+}
+
+function rotateCW(m) {
+  const N = m.length;
+  const r = Array.from({ length: N }, () => Array(N).fill(0));
+  for (let y = 0; y < N; y++) {
+    for (let x = 0; x < N; x++) {
+      r[y][x] = m[N - 1 - x][y];
+    }
+  }
+  return r;
+}
+
+function nextFromBag() {
+  if (bag.length === 0) {
+    bag = ['I', 'O', 'T', 'S', 'Z', 'J', 'L'];
+    for (let i = bag.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [bag[i], bag[j]] = [bag[j], bag[i]];
+    }
+  }
+  return bag.pop();
+}
+
+function collides(matrix, x, y) {
+  for (let row = 0; row < matrix.length; row++) {
+    for (let col = 0; col < matrix[row].length; col++) {
+      if (!matrix[row][col]) continue;
+      const bx = x + col;
+      const by = y + row;
+      if (bx < 0 || bx >= COLS) return true;
+      if (by >= ROWS) return true;
+      if (by < 0) continue;
+      if (board[by][bx]) return true;
+    }
+  }
+  return false;
+}
+
+function spawn() {
+  while (nextQueue.length < 4) nextQueue.push(nextFromBag());
+  const type = nextQueue.shift();
+  const p = PIECES[type];
+  const x = SPAWN_X[type];
+
+  if (collides(p.matrix, x, 0)) {
+    triggerGameOver();
+    return false;
+  }
+
+  current = {
+    type: type,
+    matrix: p.matrix.map(r => r.slice()),
+    x: x,
+    y: 0,
+  };
+  dropTimer = 0;
+  lockTimer = 0;
+  return true;
+}
+
+function moveHorizontal(dx) {
+  if (!current) return false;
+  if (collides(current.matrix, current.x + dx, current.y)) return false;
+  current.x += dx;
+  lockTimer = 0;
+  sfxMove();
+  return true;
+}
+
+function rotatePiece() {
+  if (!current) return false;
+  const rotated = rotateCW(current.matrix);
+  for (const [kx, ky] of KICKS) {
+    if (!collides(rotated, current.x + kx, current.y + ky)) {
+      current.matrix = rotated;
+      current.x += kx;
+      current.y += ky;
+      lockTimer = 0;
+      sfxRotate();
+      return true;
+    }
+  }
+  return false;
+}
+
+function softDrop() {
+  if (!current) return false;
+  if (collides(current.matrix, current.x, current.y + 1)) return false;
+  current.y++;
+  dropTimer = 0;
+  score += 1;
+  updateHUD();
+  return true;
+}
+
+function hardDrop() {
+  if (!current) return;
+  let dropped = 0;
+  while (!collides(current.matrix, current.x, current.y + 1)) {
+    current.y++;
+    dropped++;
+  }
+  score += dropped * 2;
+  updateHUD();
+  sfxDrop();
+  shake = Math.min(8, 3 + dropped * 0.3);
+  lockPiece();
+}
+
+function holdPiece() {
+  if (!canHold || !current) return;
+  canHold = false;
+  sfxHold();
+
+  const prevType = current.type;
+
+  if (holdType === null) {
+    holdType = prevType;
+    current = null;
+    spawn();
+  } else {
+    const swapType = holdType;
+    holdType = prevType;
+    const p = PIECES[swapType];
+    current = {
+      type: swapType,
+      matrix: p.matrix.map(r => r.slice()),
+      x: SPAWN_X[swapType],
+      y: 0,
+    };
+    dropTimer = 0;
+    lockTimer = 0;
+  }
+}
+
+function lockPiece() {
+  if (!current) return;
+  let topRow = ROWS;
+
+  for (let r = 0; r < current.matrix.length; r++) {
+    for (let c = 0; c < current.matrix[r].length; c++) {
+      if (!current.matrix[r][c]) continue;
+      const bx = current.x + c;
+      const by = current.y + r;
+      if (by >= 0 && by < ROWS && bx >= 0 && bx < COLS) {
+        board[by][bx] = current.type;
+        if (by < topRow) topRow = by;
+      }
+    }
+  }
+
+  sfxLock();
+  shake = Math.max(shake, 4);
+
+  const cleared = clearLines();
+
+  if (cleared > 0) {
+    // امتیاز بر اساس تعداد
+    const table = [0, 100, 300, 500, 800];
+    const points = table[cleared] * level;
+    score += points;
+
+    // پیام شناور
+    if (cleared === 4) showFlash('TETRIS!', '#FF4D8F');
+    else if (cleared === 3) showFlash('TRIPLE!', '#FF9F40');
+    else if (cleared === 2) showFlash('DOUBLE!', '#FFD700');
+
+    sfxLineClear(cleared);
+
+    // لرزش قویتر
+    shake = Math.min(20, 8 + cleared * 3);
+
+    // چک level up
+    const oldLevel = level;
+    const newLevel = Math.floor(lines / 10) + 1;
+    if (newLevel > oldLevel) {
+      level = newLevel;
+      sfxLevelUp();
+      showFlash('LEVEL ' + level, '#00F0FF');
+    }
+    updateHUD();
+  }
+
+  if (topRow < 1) {
+    triggerGameOver();
+    return;
+  }
+
+  current = null;
+  spawn();
+}
+
+function clearLines() {
+  const full = [];
+  for (let r = 0; r < ROWS; r++) {
+    if (board[r].every(c => c !== null)) full.push(r);
+  }
+  if (full.length === 0) return 0;
+
+  // ذرات
+  for (const r of full) {
+    for (let c = 0; c < COLS; c++) {
+      const type = board[r][c];
+      if (!type) continue;
+      const color = PIECES[type].color;
+      const cx = PX + c * CELL + CELL / 2;
+      const cy = PY + r * CELL + CELL / 2;
+      for (let i = 0; i < 4; i++) {
+        particles.push({
+          x: cx + rand(-4, 4),
+          y: cy + rand(-4, 4),
+          vx: rand(-3, 3),
+          vy: rand(-4, 1),
+          life: 1,
+          size: rand(2, 4),
+          color: color,
+          grav: 0.25,
+        });
+      }
+    }
+  }
+
+  // حذف ردیف‌ها
+  for (const r of full) {
+    board.splice(r, 1);
+    board.unshift(Array(COLS).fill(null));
+  }
+
+  lines += full.length;
+  return full.length;
+}
+
+function gravityMs() {
+  return Math.max(50, 800 * Math.pow(0.85, level - 1));
+}
+
+function triggerGameOver() {
+  state = DYING;
+  dyingT = 0;
+  shake = 24;
+  sfxGameOver();
+
+  // انفجار بزرگ ذرات
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (!board[r][c]) continue;
+      const color = PIECES[board[r][c]].color;
+      const cx = PX + c * CELL + CELL / 2;
+      const cy = PY + r * CELL + CELL / 2;
+      for (let i = 0; i < 2; i++) {
+        particles.push({
+          x: cx, y: cy,
+          vx: rand(-4, 4),
+          vy: rand(-6, 2),
+          life: 1,
+          size: rand(2, 5),
+          color: color,
+          grav: 0.3,
+        });
+      }
+    }
+  }
+}
+
+function finishGameOver() {
+  state = OVER;
+  musicPlaying = false;
+
+  $finalScore.textContent = String(score);
+  $finalLines.textContent = String(lines);
+  $finalLevel.textContent = String(level);
+
+  if (score > best) {
+    best = score;
+    localStorage.setItem('tetris_best', String(Math.floor(best)));
+  }
+  $bestScore.textContent = String(best);
+
+  $overModal.classList.add('open');
+
+  // ذخیره در سرور
+  if (window.ArcadeAPI) {
+    ArcadeAPI.saveScore('tetris', score, {
+      meta: { lines: lines, level: level }
+    });
+  }
+}
+
+function updateHUD() {
+  $scoreEl.textContent = String(score).padStart(6, '0');
+  $levelEl.textContent = String(level);
+  $linesEl.textContent = String(lines);
+}
+
+/* ══════════════════════════════════════════
+   ۸) ذرات و پیام
+   ══════════════════════════════════════════ */
+function updateParticles(dt) {
+  const dtf = dt / 16.67;
+  for (const p of particles) {
+    p.x += p.vx * dtf;
+    p.y += p.vy * dtf;
+    p.vy += p.grav * dtf;
+    p.vx *= 0.98;
+    p.life -= 0.02 * dtf;
+  }
+  particles = particles.filter(p => p.life > 0);
+}
+
+function drawParticles() {
+  for (const p of particles) {
+    ctx.globalAlpha = Math.max(0, p.life);
+    ctx.fillStyle = p.color;
+    ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+  }
+  ctx.globalAlpha = 1;
+}
+
+function showFlash(text, color) {
+  flashMsg = { text: text, color: color };
+  flashMsgTimer = 900;
+}
+
+/* ══════════════════════════════════════════
+   ۹) رسم
+   ══════════════════════════════════════════ */
+function drawBlock(x, y, size, color, alpha) {
+  alpha = alpha == null ? 1 : alpha;
+  const gap = 1;
+  const s = size - gap * 2;
+
+  // Glow
+  ctx.globalAlpha = alpha * 0.18;
+  ctx.fillStyle = color;
+  ctx.fillRect(x - 1, y - 1, size + 2, size + 2);
+
+  // Main
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = color;
+  ctx.fillRect(x + gap, y + gap, s, s);
+
+  // Top-left highlight
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.fillRect(x + gap + 2, y + gap + 2, s - 4, 2);
+  ctx.fillRect(x + gap + 2, y + gap + 2, 2, s - 4);
+
+  // Bottom-right shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.35)';
+  ctx.fillRect(x + gap + 2, y + gap + s - 4, s - 4, 2);
+  ctx.fillRect(x + gap + s - 4, y + gap + 2, 2, s - 4);
+
+  ctx.globalAlpha = 1;
+}
+
+function drawGhostBlock(x, y, size, color) {
+  ctx.globalAlpha = 0.16;
+  ctx.fillStyle = color;
+  ctx.fillRect(x + 2, y + 2, size - 4, size - 4);
+  ctx.globalAlpha = 0.35;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(x + 2.5, y + 2.5, size - 5, size - 5);
+  ctx.globalAlpha = 1;
+}
+
+function drawBackground() {
+  // پس‌زمینه
+  ctx.fillStyle = '#08060F';
+  ctx.fillRect(0, 0, W, H);
+
+  // گرادیان ملایم
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, 'rgba(20,15,40,0.6)');
+  g.addColorStop(0.5, 'rgba(10,8,25,0.3)');
+  g.addColorStop(1, 'rgba(5,3,15,0.7)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+
+  // خطوط شبکه
+  ctx.strokeStyle = 'rgba(120,80,180,0.10)';
+  ctx.lineWidth = 1;
+
+  for (let c = 0; c <= COLS; c++) {
+    const x = PX + c * CELL;
+    ctx.beginPath();
+    ctx.moveTo(x + 0.5, PY);
+    ctx.lineTo(x + 0.5, PY + PH);
+    ctx.stroke();
+  }
+  for (let r = 0; r <= ROWS; r++) {
+    const y = PY + r * CELL;
+    ctx.beginPath();
+    ctx.moveTo(PX, y + 0.5);
+    ctx.lineTo(PX + PW, y + 0.5);
+    ctx.stroke();
+  }
+}
+
+function drawPlayfieldFrame() {
+  ctx.strokeStyle = 'rgba(0,240,255,0.5)';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(PX - 1, PY - 1, PW + 2, PH + 2);
+
+  // Inner glow line
+  ctx.strokeStyle = 'rgba(0,240,255,0.15)';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(PX - 3, PY - 3, PW + 6, PH + 6);
+}
+
+function drawBoard() {
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const type = board[r][c];
+      if (!type) continue;
+      const color = PIECES[type].color;
+      drawBlock(PX + c * CELL, PY + r * CELL, CELL, color);
+    }
+  }
+}
+
+function drawGhost() {
+  if (!current) return;
+  let gy = current.y;
+  while (!collides(current.matrix, current.x, gy + 1)) gy++;
+  if (gy === current.y) return;
+
+  const color = PIECES[current.type].color;
+
+  for (let r = 0; r < current.matrix.length; r++) {
+    for (let c = 0; c < current.matrix[r].length; c++) {
+      if (!current.matrix[r][c]) continue;
+      const bx = current.x + c;
+      const by = gy + r;
+      if (by < 0) continue;
+      drawGhostBlock(PX + bx * CELL, PY + by * CELL, CELL, color);
+    }
+  }
+}
+
+function drawCurrent() {
+  if (!current) return;
+  const color = PIECES[current.type].color;
+  for (let r = 0; r < current.matrix.length; r++) {
+    for (let c = 0; c < current.matrix[r].length; c++) {
+      if (!current.matrix[r][c]) continue;
+      const bx = current.x + c;
+      const by = current.y + r;
+      if (by < 0) continue;
+      drawBlock(PX + bx * CELL, PY + by * CELL, CELL, color);
+    }
+  }
+}
+
+function drawPreviewBlock(x, y, size, color) {
+  ctx.fillStyle = color;
+  ctx.fillRect(x, y, size, size);
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.fillRect(x + 1, y + 1, size - 2, 1);
+  ctx.fillRect(x + 1, y + 1, 1, size - 2);
+}
+
+function drawMiniPiece(matrix, color, cx, cy, cell) {
+  // پیدا کردن bounding box
+  let minX = 99, maxX = -1, minY = 99, maxY = -1;
+  for (let r = 0; r < matrix.length; r++) {
+    for (let c = 0; c < matrix[r].length; c++) {
+      if (matrix[r][c]) {
+        if (c < minX) minX = c;
+        if (c > maxX) maxX = c;
+        if (r < minY) minY = r;
+        if (r > maxY) maxY = r;
+      }
+    }
+  }
+  const w = (maxX - minX + 1) * cell;
+  const h = (maxY - minY + 1) * cell;
+  const startX = cx - w / 2;
+  const startY = cy - h / 2;
+
+  for (let r = minY; r <= maxY; r++) {
+    for (let c = minX; c <= maxX; c++) {
+      if (!matrix[r][c]) continue;
+      drawPreviewBlock(
+        startX + (c - minX) * cell,
+        startY + (r - minY) * cell,
+        cell, color
+      );
+    }
+  }
+}
+
+function drawHoldBox() {
+  // Box
+  ctx.fillStyle = 'rgba(11,15,26,0.7)';
+  ctx.strokeStyle = 'rgba(100,116,139,0.4)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.roundRect(HOLD_X, HOLD_Y, HOLD_W, HOLD_H, 6);
+  ctx.fill();
+  ctx.stroke();
+
+  // Label
+  ctx.fillStyle = '#64748B';
+  ctx.font = "7px 'Press Start 2P', monospace";
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  ctx.fillText('HOLD', HOLD_X + HOLD_W / 2, HOLD_Y + 4);
+
+  if (holdType) {
+    const p = PIECES[holdType];
+    const cell = 10;
+    const cy = HOLD_Y + HOLD_H / 2 + 6;
+    drawMiniPiece(p.matrix, p.color, HOLD_X + HOLD_W / 2, cy, cell);
+  }
+}
+
+function drawNextBox() {
+  ctx.fillStyle = 'rgba(11,15,26,0.7)';
+  ctx.strokeStyle = 'rgba(100,116,139,0.4)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.roundRect(NEXT_X, NEXT_Y, NEXT_W, NEXT_H, 6);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = '#64748B';
+  ctx.font = "7px 'Press Start 2P', monospace";
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  ctx.fillText('NEXT', NEXT_X + NEXT_W / 2, NEXT_Y + 4);
+
+  const cell = 10;
+  for (let i = 0; i < Math.min(3, nextQueue.length); i++) {
+    const type = nextQueue[i];
+    const p = PIECES[type];
+    const cy = NEXT_Y + 24 + i * 46;
+    drawMiniPiece(p.matrix, p.color, NEXT_X + NEXT_W / 2, cy, cell);
+  }
+}
+
+function drawFlashMessage() {
+  if (!flashMsg) return;
+  const t = flashMsgTimer / 900;
+  const scale = 1 + (1 - t) * 0.3;
+  const alpha = Math.min(1, t * 2);
+
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.translate(W / 2, H / 2 - 40);
+  ctx.scale(scale, scale);
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  ctx.font = "bold 20px 'Press Start 2P', monospace";
+  ctx.lineWidth = 5;
+  ctx.strokeStyle = 'rgba(0,0,0,0.8)';
+  ctx.strokeText(flashMsg.text, 0, 0);
+
+  ctx.shadowColor = flashMsg.color;
+  ctx.shadowBlur = 22;
+  ctx.fillStyle = flashMsg.color;
+  ctx.fillText(flashMsg.text, 0, 0);
+  ctx.restore();
+}
+
+function render() {
+  ctx.save();
+
+  // لرزش
+  if (shake > 0.5) {
+    ctx.translate(rand(-shake, shake) * 0.4, rand(-shake, shake) * 0.4);
+  }
+
+  drawBackground();
+  drawPlayfieldFrame();
+  drawBoard();
+  drawGhost();
+  drawCurrent();
+  drawHoldBox();
+  drawNextBox();
+  drawParticles();
+  drawFlashMessage();
+
+  ctx.restore();
+}
+
+/* ══════════════════════════════════════════
+   ۱۰) به‌روزرسانی
+   ══════════════════════════════════════════ */
+function update(dt) {
+  frame++;
+
+  // موسیقی
+  if (musicPlaying && actx) scheduleMusic();
+
+  // ذرات
+  updateParticles(dt);
+
+  // لرزش
+  if (shake > 0) {
+    shake *= Math.pow(0.88, dt / 16.67);
+    if (shake < 0.3) shake = 0;
+  }
+
+  // پیام
+  if (flashMsgTimer > 0) {
+    flashMsgTimer -= dt;
+    if (flashMsgTimer <= 0) flashMsg = null;
+  }
+
+  // وضعیت
+  if (state === DYING) {
+    dyingT += dt;
+    if (dyingT > 700) finishGameOver();
+    return;
+  }
+
+  if (state !== PLAY || !current) return;
+
+  // گراویتی
+  const gravMs = gravityMs();
+  dropTimer += dt;
+
+  const isSoftDropping = keys.down;
+  const effectiveGrav = isSoftDropping ? Math.min(60, gravMs) : gravMs;
+
+  if (dropTimer >= effectiveGrav) {
+    dropTimer -= effectiveGrav;
+    if (!collides(current.matrix, current.x, current.y + 1)) {
+      current.y++;
+      if (isSoftDropping) {
+        score += 1;
+        updateHUD();
+      }
+      lockTimer = 0;
+    }
+  }
+
+  // چک lock
+  if (collides(current.matrix, current.x, current.y + 1)) {
+    lockTimer += dt;
+    if (lockTimer >= 400) {
+      lockPiece();
+    }
+  } else {
+    lockTimer = 0;
+  }
+
+  // حرکت چپ/راست با نگه‌داشتن (DAS)
+  handleDAS(dt);
+}
+
+/* ── DAS: نگه‌داشتن کلید چپ/راست ── */
+let dasTimer = 0;
+let dasDir = 0;
+let arrTimer = 0;
+const DAS_DELAY = 150;
+const ARR_RATE = 45;
+
+function handleDAS(dt) {
+  const dir = keys.left ? -1 : keys.right ? 1 : 0;
+
+  if (dir === 0) {
+    dasDir = 0;
+    dasTimer = 0;
+    arrTimer = 0;
+    return;
+  }
+
+  if (dir !== dasDir) {
+    dasDir = dir;
+    dasTimer = 0;
+    arrTimer = 0;
+    moveHorizontal(dir);
+    return;
+  }
+
+  dasTimer += dt;
+  if (dasTimer >= DAS_DELAY) {
+    arrTimer += dt;
+    while (arrTimer >= ARR_RATE) {
+      arrTimer -= ARR_RATE;
+      if (!moveHorizontal(dir)) break;
+    }
+  }
+}
+
+/* ══════════════════════════════════════════
+   ۱۱) ورودی
+   ══════════════════════════════════════════ */
+const keys = { left: false, right: false, down: false };
+
+/* ── کیبورد ── */
+window.addEventListener('keydown', function (e) {
+  if (state === READY || state === OVER) {
+    if (e.code === 'Space' || e.code === 'Enter') {
+      e.preventDefault();
+      startGame();
+    }
+    return;
+  }
+
+  if (e.code === 'KeyP' || e.code === 'Escape') {
+    e.preventDefault();
+    togglePause();
+    return;
+  }
+
+  if (state !== PLAY) return;
+
+  switch (e.code) {
+    case 'ArrowLeft':  e.preventDefault(); if (!e.repeat) keys.left = true; break;
+    case 'ArrowRight': e.preventDefault(); if (!e.repeat) keys.right = true; break;
+    case 'ArrowDown':  e.preventDefault(); if (!e.repeat) keys.down = true; break;
+    case 'ArrowUp':
+    case 'KeyX':       e.preventDefault(); if (!e.repeat) rotatePiece(); break;
+    case 'KeyZ':       e.preventDefault(); if (!e.repeat) rotatePiece(); break;
+    case 'Space':      e.preventDefault(); if (!e.repeat) hardDrop(); break;
+    case 'KeyC':
+    case 'ShiftLeft':
+    case 'ShiftRight': e.preventDefault(); if (!e.repeat) holdPiece(); break;
+  }
+}, { passive: false });
+
+window.addEventListener('keyup', function (e) {
+  switch (e.code) {
+    case 'ArrowLeft':  keys.left = false; break;
+    case 'ArrowRight': keys.right = false; break;
+    case 'ArrowDown':  keys.down = false; break;
+  }
+});
+
+/* ── دکمه‌های لمسی ── */
+document.querySelectorAll('.ctrl-btn').forEach(function (btn) {
+  const action = btn.dataset.action;
+
+  function press() {
+    if (state !== PLAY) return;
+    btn.classList.add('pressed');
+
+    if (action === 'left')  keys.left = true;
+    if (action === 'right') keys.right = true;
+    if (action === 'down')  keys.down = true;
+    if (action === 'rotate') rotatePiece();
+    if (action === 'hardDrop') hardDrop();
+    if (action === 'hold') holdPiece();
+  }
+
+  function release() {
+    btn.classList.remove('pressed');
+    if (action === 'left')  keys.left = false;
+    if (action === 'right') keys.right = false;
+    if (action === 'down')  keys.down = false;
+  }
+
+  btn.addEventListener('pointerdown', function (e) {
+    e.preventDefault();
+    btn.setPointerCapture && btn.setPointerCapture(e.pointerId);
+    press();
+  });
+  btn.addEventListener('pointerup', function (e) { e.preventDefault(); release(); });
+  btn.addEventListener('pointercancel', release);
+  btn.addEventListener('pointerleave', release);
+  btn.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+});
+
+/* ── سوایپ روی canvas ── */
+let swipeStart = null;
+let swipeHandled = false;
+
+$stage.addEventListener('pointerdown', function (e) {
+  if (state !== PLAY) return;
+  // فقط اگر روی canvas یا framer باشه (نه دکمه‌ها)
+  if (e.target !== canvas) return;
+  e.preventDefault();
+  swipeStart = { x: e.clientX, y: e.clientY, t: Date.now() };
+  swipeHandled = false;
+}, { passive: false });
+
+$stage.addEventListener('pointermove', function (e) {
+  if (!swipeStart || state !== PLAY) return;
+  e.preventDefault();
+
+  const dx = e.clientX - swipeStart.x;
+  const dy = e.clientY - swipeStart.y;
+  const TH = 30;
+
+  if (Math.abs(dx) > TH && Math.abs(dx) > Math.abs(dy)) {
+    moveHorizontal(dx > 0 ? 1 : -1);
+    swipeStart = { x: e.clientX, y: e.clientY, t: Date.now() };
+    swipeHandled = true;
+  } else if (dy > TH && Math.abs(dy) > Math.abs(dx)) {
+    // سوایپ پایین = soft drop سریع
+    softDrop();
+    swipeStart = { x: e.clientX, y: e.clientY, t: Date.now() };
+    swipeHandled = true;
+  }
+}, { passive: false });
+
+$stage.addEventListener('pointerup', function (e) {
+  if (!swipeStart) return;
+  const dt = Date.now() - swipeStart.t;
+  const dx = e.clientX - swipeStart.x;
+  const dy = e.clientY - swipeStart.y;
+  const dist = Math.hypot(dx, dy);
+
+  if (!swipeHandled) {
+    if (dist < 15 && dt < 250) {
+      // تپ = چرخش
+      rotatePiece();
+    } else if (dy < -40 && Math.abs(dy) > Math.abs(dx)) {
+      // سوایپ بالا = hold
+      holdPiece();
+    } else if (dy > 80 && Math.abs(dy) > Math.abs(dx)) {
+      // سوایپ پایین سریع = hard drop
+      hardDrop();
+    }
+  }
+
+  swipeStart = null;
+  swipeHandled = false;
+});
+
+$stage.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+$stage.addEventListener('touchmove', function (e) { if (e.cancelable) e.preventDefault(); }, { passive: false });
+
+/* ══════════════════════════════════════════
+   ۱۲) شروع / پایان / Pause
+   ══════════════════════════════════════════ */
+function startGame() {
+  createBoard();
+  bag = [];
+  nextQueue = [];
+  holdType = null;
+  canHold = true;
+  current = null;
+  score = 0;
+  lines = 0;
+  level = 1;
+  dropTimer = 0;
+  lockTimer = 0;
+  dyingT = 0;
+  particles = [];
+  shake = 0;
+  flashMsg = null;
+  flashMsgTimer = 0;
+  frame = 0;
+  keys.left = keys.right = keys.down = false;
+  dasTimer = 0;
+  dasDir = 0;
+  arrTimer = 0;
+
+  updateHUD();
+  $startModal.classList.remove('open');
+  $overModal.classList.remove('open');
+  $pauseModal.classList.remove('open');
+
+  spawn();
+  state = PLAY;
+
+  audio();
+  musicPlaying = true;
+  musicNextTime = actx ? actx.currentTime + 0.1 : 0;
+  musicStep = 0;
+}
+
+function togglePause() {
+  if (state !== PLAY) return;
+  state = PAUSED;
+  musicPlaying = false;
+  $pauseModal.classList.add('open');
+}
+
+function resumeGame() {
+  if (state !== PAUSED) return;
+  state = PLAY;
+  musicPlaying = true;
+  musicNextTime = actx ? actx.currentTime + 0.05 : 0;
+  $pauseModal.classList.remove('open');
+}
+
+/* ══════════════════════════════════════════
+   ۱۳) دکمه‌ها
+   ══════════════════════════════════════════ */
+$startBtn.addEventListener('click', startGame);
+$restartBtn.addEventListener('click', startGame);
+$resumeBtn.addEventListener('click', resumeGame);
+$pauseBtn.addEventListener('click', function () {
+  if (state === PLAY) togglePause();
+  else if (state === PAUSED) resumeGame();
+});
+
+$menuBtn.addEventListener('click', function () {
+  state = READY;
+  musicPlaying = false;
+  $overModal.classList.remove('open');
+  $startModal.classList.add('open');
+});
+
+$muteBtn.addEventListener('click', function () {
+  muted = !muted;
+  $muteBtn.textContent = muted ? '🔇' : '🔊';
+  if (musicGain) musicGain.gain.value = muted ? 0 : 0.5;
+  if (sfxGain) sfxGain.gain.value = muted ? 0 : 0.7;
+});
+
+/* ── Pause on tab hide ── */
+document.addEventListener('visibilitychange', function () {
+  if (document.hidden && state === PLAY) togglePause();
+});
+
+/* ══════════════════════════════════════════
+   ۱۴) حلقه اصلی
+   ══════════════════════════════════════════ */
+const STEP = 1000 / 60;
+let acc = 0, last = performance.now();
+
+function loop(now) {
+  acc += Math.min(now - last, 200);
+  last = now;
+
+  let guard = 0;
+  while (acc >= STEP && guard < 5) {
+    update(STEP);
+    acc -= STEP;
+    guard++;
+  }
+  if (guard >= 5) acc = 0;
+
+  render();
+  requestAnimationFrame(loop);
+}
+
+/* ══════════════════════════════════════════
+   ۱۵) شروع
+   ══════════════════════════════════════════ */
+createBoard();
+updateHUD();
+resizeCanvas();
+window.addEventListener('load', function () { setTimeout(resizeCanvas, 60); });
+requestAnimationFrame(loop);
+
+})();
+</script>
+</body>
+</html>
