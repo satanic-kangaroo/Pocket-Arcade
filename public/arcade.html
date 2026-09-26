@@ -1066,6 +1066,24 @@
       </div>
     </a>
 
+    <!-- 🔢 2048 -->
+    <a href="./2048.html" data-game="2048" data-title="2048" data-icon="🔢"
+       data-accent="#FFD166" data-accent-dark="#B88A1F"
+       class="game-card rise-in" style="animation-delay:.25s; --card-accent:#FFD166; --card-glow:rgba(255,209,102,.18); --card-shadow:rgba(255,209,102,.45); --icon-bg:rgba(255,209,102,.12)">
+      <div class="icon-frame">
+        <span class="best-badge"><span class="trophy">🏆</span><span class="val">—</span></span>
+        <span class="game-icon">🔢</span>
+      </div>
+      <div class="card-body">
+        <div class="flex items-center justify-between gap-2">
+          <h2 class="card-title">2048</h2>
+          <span class="card-tag" style="color:#FFD166;border-color:rgba(255,209,102,.4)">استراتژی</span>
+        </div>
+        <p class="card-desc">کاشی‌های عددی رو ادغام کن تا به ۲۰۴۸ برسی. سوایپ یا فلش کیبورد.</p>
+        <span class="play-btn">▷ بازی کن</span>
+      </div>
+    </a>
+
     <!-- 🦄 Pinkie Runner -->
     <a href="./popo.html" data-game="pony" data-title="Pinkie Runner" data-icon="🦄"
        data-accent="#FF6B9D" data-accent-dark="#B23A69"
@@ -1240,7 +1258,8 @@
     'simon': 'simon', 'simon-says': 'simon',
     'snake': 'snake',
     'pong': 'pong',
-    'pony': 'pony', 'pinkie': 'pony', 'popo': 'pony'
+    'pony': 'pony', 'pinkie': 'pony', 'popo': 'pony',
+    '2048': '2048'
   };
 
   function normalizeId(raw) {
