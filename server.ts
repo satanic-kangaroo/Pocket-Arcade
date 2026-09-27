@@ -69,7 +69,7 @@ const server = serve({
         const row = insert.get({
           $game: game,
           $name: playerName || "بازیکن",
-          $score: Math.floor(score),
+          $score: Math.max(0, Math.floor(Number(score) || 0)),
           $meta: meta ? JSON.stringify(meta) : null,
         });
 
@@ -91,7 +91,7 @@ const server = serve({
         );
       }
 
-      // بهترین رکورد هر بازیکن + تعداد بازیهاش + آخرین متادیتا
+      // بهترین رکورد هر بازیکن + تعداد بازیهاش + متادیتا از رکورد برتر
       const rows = db.query(`
         SELECT
           s1.player_name,
@@ -103,6 +103,7 @@ const server = serve({
             FROM scores s2
             WHERE s2.player_name = s1.player_name
               AND s2.game = s1.game
+              AND s2.score = s1.score
             ORDER BY s2.created_at DESC
             LIMIT 1
           ) AS meta
