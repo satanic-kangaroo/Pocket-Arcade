@@ -11,6 +11,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Vazirmatn:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="./arcade-shared.js"></script>
+<script src="./score.js"></script>
 <style>
   html, body {
     height: 100%;
@@ -54,6 +56,7 @@
     <div class="flex items-center gap-1.5 text-emerald-400">
       <span class="text-base">🐍</span>
       <span class="px-font text-[9px] font-bold tracking-wide">SNAKE</span>
+      <button id="muteBtn" type="button" title="صدا" class="px-font text-[8px] bg-slate-800/80 w-6 h-6 rounded border border-slate-700 text-slate-300 flex items-center justify-center" style="box-shadow:0 2px 0 0 rgba(0,0,0,.3)">🔊</button>
     </div>
     <div class="flex gap-2 bg-slate-900/70 px-2 py-1 rounded-lg border border-slate-700 text-[10px] text-emerald-300">
       <div class="px-font">HI <span id="best" class="text-amber-300">000</span></div>
@@ -231,6 +234,7 @@ function lerpRgb(c1, c2, t) {
    ۶) صدا
    ══════════════════════════════════════════ */
 let actx = null;
+let muted = (window.ArcadeShared) ? ArcadeShared.isMuted('snake') : false;
 function audio() {
   try {
     if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
@@ -239,6 +243,7 @@ function audio() {
   return actx;
 }
 function tone(freq, dur, type, vol, slideTo) {
+  if (muted) return;
   const a = audio(); if (!a) return;
   const o = a.createOscillator(), g = a.createGain();
   o.type = type || 'sine';
@@ -255,6 +260,7 @@ function sfxEat() {
 }
 function sfxTurn() { tone(660, 0.03, 'triangle', 0.018); }
 function sfxDie() {
+  if (muted) return;
   const a = audio(); if (!a) return;
   [330, 247, 185, 138].forEach(function (f, i) {
     const t0 = a.currentTime + i * 0.09;
@@ -272,6 +278,14 @@ function sfxStart() {
   [523.25, 659.25, 783.99, 1046.5].forEach(function (f, i) {
     setTimeout(function () { tone(f, 0.08, 'square', 0.05); }, i * 55);
   });
+}
+
+if (window.ArcadeShared) {
+  ArcadeShared.bindMuteButton(
+    document.getElementById('muteBtn'),
+    'snake',
+    function (m) { muted = m; }
+  );
 }
 
 /* ══════════════════════════════════════════
@@ -954,6 +968,5 @@ window.addEventListener('load', function () { setTimeout(resizeCanvas, 60); });
 
 })();
 </script>
-<script src="./score.js"></script>
 </body>
 </html>

@@ -329,8 +329,8 @@
 
 </div>
 
-<script src="./score.js"></script>
-<script>
+<script src="./arcade-shared.js"></script>
+<script src="./score.js"></script><script>
 (function () {
 'use strict';
 
@@ -446,7 +446,7 @@ let flashMsg = null;
 let flashMsgTimer = 0;
 
 let frame = 0;
-let muted = false;
+let muted = window.ArcadeShared ? ArcadeShared.isMuted('tetris') : false;
 let best = Number(localStorage.getItem('tetris_best') || 0);
 
 /* ══════════════════════════════════════════
@@ -1487,13 +1487,17 @@ $menuBtn.addEventListener('click', function () {
   $startModal.classList.add('open');
 });
 
-$muteBtn.addEventListener('click', function () {
-  muted = !muted;
-  $muteBtn.textContent = muted ? '🔇' : '🔊';
-  if (musicGain) musicGain.gain.value = muted ? 0 : 0.5;
-  if (sfxGain) sfxGain.gain.value = muted ? 0 : 0.7;
-});
-
+if (window.ArcadeShared) {
+  ArcadeShared.bindMuteButton(
+    document.getElementById('muteBtn'),
+    'tetris',
+    function (m) {
+      muted = m;
+      if (musicGain) musicGain.gain.value = m ? 0 : 0.5;
+      if (sfxGain) sfxGain.gain.value = m ? 0 : 0.7;
+    }
+  );
+}
 /* ── Pause on tab hide ── */
 document.addEventListener('visibilitychange', function () {
   if (document.hidden && state === PLAY) togglePause();

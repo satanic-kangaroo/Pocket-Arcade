@@ -251,8 +251,8 @@
 
 </div>
 
-<script src="./score.js"></script>
-<script>
+<script src="./arcade-shared.js"></script>
+<script src="./score.js"></script><script>
 (function () {
 'use strict';
 
@@ -361,7 +361,7 @@ let canUndo = false;
 let shake = 0;
 let particles = [];
 let frame = 0;
-let muted = false;
+let muted = window.ArcadeShared ? ArcadeShared.isMuted('2048') : false;
 
 /* ══════════════════════════════════════════
    5) DOM
@@ -1101,11 +1101,16 @@ $newBtn.addEventListener('click', function () {
   startGame();
 });
 
-$muteBtn.addEventListener('click', function () {
-  muted = !muted;
-  $muteBtn.textContent = muted ? '🔇' : '🔊';
-  if (sfxGain) sfxGain.gain.value = muted ? 0 : 0.85;
-});
+if (window.ArcadeShared) {
+  ArcadeShared.bindMuteButton(
+    document.getElementById('muteBtn'),
+    '2048',
+    function (m) {
+      muted = m;
+      if (sfxGain) sfxGain.gain.value = m ? 0 : 0.85;
+    }
+  );
+}
 
 /* ══════════════════════════════════════════
    18) Init

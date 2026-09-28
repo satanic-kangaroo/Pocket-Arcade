@@ -280,8 +280,8 @@
 
 </div>
 
-<script src="./score.js"></script>
-<script>
+<script src="./arcade-shared.js"></script>
+<script src="./score.js"></script><script>
 (function () {
 'use strict';
 
@@ -430,7 +430,7 @@ let flashMsgTimer = 0;
 let losingT = 0;
 let levelStartScore = 0;
 
-let muted = false;
+let muted = window.ArcadeShared ? ArcadeShared.isMuted('breakout') : false;
 let frame = 0;
 let best = Number(localStorage.getItem('breakout_best') || 0);
 
@@ -1534,12 +1534,17 @@ $menuBtn.addEventListener('click', function () {
   $startModal.classList.add('open');
 });
 
-$muteBtn.addEventListener('click', function () {
-  muted = !muted;
-  $muteBtn.textContent = muted ? '🔇' : '🔊';
-  if (musicGain) musicGain.gain.value = muted ? 0 : 0.22;
-  if (sfxGain) sfxGain.gain.value = muted ? 0 : 0.85;
-});
+if (window.ArcadeShared) {
+  ArcadeShared.bindMuteButton(
+    document.getElementById('muteBtn'),
+    'breakout',
+    function (m) {
+      muted = m;
+      if (musicGain) musicGain.gain.value = m ? 0 : 0.22;
+      if (sfxGain) sfxGain.gain.value = m ? 0 : 0.85;
+    }
+  );
+}
 
 document.addEventListener('visibilitychange', function () {
   if (document.hidden && state === PLAY) togglePause();

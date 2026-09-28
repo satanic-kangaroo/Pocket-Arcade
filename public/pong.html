@@ -142,6 +142,7 @@
   <div class="mt-2 text-[9px] text-slate-600">HTML5 Canvas + Web Audio — بدون فایل خارجی</div>
 </div>
 
+<script src="./arcade-shared.js"></script>
 <script>
 (function () {
 'use strict';
@@ -264,7 +265,7 @@ let winner = 0;
 let matchEndTimer = 0;
 
 let paused = false;
-let muted = false;
+let muted = window.ArcadeShared ? ArcadeShared.isMuted('pong') : false;
 
 let frame = 0;
 let shake = 0;
@@ -1300,11 +1301,15 @@ function toggleMute() {
   $muteBtn.classList.toggle('text-slate-300', !muted);
   if (!muted) sfxServe();
 }
-$muteBtn.addEventListener('click', function (e) {
-  e.preventDefault();
-  e.stopPropagation();
-  toggleMute();
-});
+if (window.ArcadeShared) {
+  ArcadeShared.bindMuteButton(
+    document.getElementById('muteBtn'),
+    'pong',
+    function (m) {
+      muted = m;
+    }
+  );
+}
 
 /* ══════════════════════════════════════════
    ۲۰) روشن!
@@ -1315,6 +1320,5 @@ requestAnimationFrame(loop);
 
 })();
 </script>
-<script src="./score.js"></script>
-</body>
+<script src="./score.js"></script></body>
 </html>

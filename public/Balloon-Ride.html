@@ -6,6 +6,8 @@
 <title>🎈 Balloon Ride</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<script src="./arcade-shared.js"></script>
+<script src="./score.js"></script>
 <style>
   body {
     font-family: 'Press Start 2P', cursive;
@@ -27,6 +29,7 @@
     <div class="flex items-center gap-2 text-sky-600">
       <span class="text-base">🎈</span>
       <span class="font-bold tracking-wider">BALLOON RIDE</span>
+      <button id="muteBtn" type="button" title="صدا" class="w-6 h-6 md:w-7 md:h-7 rounded-lg border border-sky-200 bg-white/70 text-sm flex items-center justify-center" style="box-shadow:0 2px 0 0 rgba(0,0,0,.08)">🔊</button>
     </div>
     <div class="flex gap-2 md:gap-5 bg-white/70 px-3 py-2 rounded-xl border border-sky-200 text-sky-700">
       <div>HI <span id="best" class="text-sky-500">00000</span></div>
@@ -132,12 +135,14 @@ function pad(n, len) { return String(Math.floor(n)).padStart(len, '0'); }
    ۵) صدا — بدون هیچ فایل mp3!
    ══════════════════════════════════════════ */
 let actx = null;
+let muted = (window.ArcadeShared) ? ArcadeShared.isMuted('balloon') : false;
 function audio() {
   if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
   if (actx && actx.state === 'suspended') actx.resume();
   return actx;
 }
 function tone(freq, dur, type, vol) {
+  if (muted) return;
   const a = audio(); if (!a) return;
   const o = a.createOscillator(), g = a.createGain();
   o.type = type || 'sine';
@@ -149,6 +154,7 @@ function tone(freq, dur, type, vol) {
 }
 function sfxStar()  { tone(880, 0.09, 'sine', 0.05); setTimeout(() => tone(1320, 0.12, 'sine', 0.045), 70); }
 function sfxPop() {
+  if (muted) return;
   const a = audio(); if (!a) return;
   const o = a.createOscillator(), g = a.createGain();
   o.type = 'sawtooth';
@@ -158,6 +164,14 @@ function sfxPop() {
   g.gain.exponentialRampToValueAtTime(0.0001, a.currentTime + 0.3);
   o.connect(g).connect(a.destination);
   o.start(); o.stop(a.currentTime + 0.32);
+}
+
+if (window.ArcadeShared) {
+  ArcadeShared.bindMuteButton(
+    document.getElementById('muteBtn'),
+    'balloon',
+    function (m) { muted = m; }
+  );
 }
 
 /* ══════════════════════════════════════════
@@ -771,6 +785,5 @@ requestAnimationFrame(loop);
 
 })();
 </script>
-<script src="./score.js"></script>
 </body>
 </html>

@@ -278,8 +278,8 @@
 
 </div>
 
-<script src="./score.js"></script>
-<script>
+<script src="./arcade-shared.js"></script>
+<script src="./score.js"></script><script>
 (function () {
 'use strict';
 
@@ -537,7 +537,7 @@ let shake = 0;
 let particles = [];
 let floaters = [];
 let frame = 0;
-let muted = false;
+let muted = window.ArcadeShared ? ArcadeShared.isMuted('pinkie-adventure') : false;
 let best = Number(localStorage.getItem('pinkie_adv_best') || 0);
 
 /* ══════════════════════════════════════════
@@ -1792,12 +1792,17 @@ $menuBtn.addEventListener('click', function () {
   $startModal.classList.add('open');
 });
 
-$muteBtn.addEventListener('click', function () {
-  muted = !muted;
-  $muteBtn.textContent = muted ? '🔇' : '🔊';
-  if (musicGain) musicGain.gain.value = muted ? 0 : 0.2;
-  if (sfxGain) sfxGain.gain.value = muted ? 0 : 0.85;
-});
+if (window.ArcadeShared) {
+  ArcadeShared.bindMuteButton(
+    document.getElementById('muteBtn'),
+    'pinkie-adventure',
+    function (m) {
+      muted = m;
+      if (musicGain) musicGain.gain.value = m ? 0 : 0.2;
+      if (sfxGain) sfxGain.gain.value = m ? 0 : 0.85;
+    }
+  );
+}
 
 document.addEventListener('visibilitychange', function () {
   if (document.hidden && state === PLAY) togglePause();
