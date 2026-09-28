@@ -4,7 +4,7 @@
              Network-first for HTML navigations
    ═══════════════════════════════════════════════════ */
 
-const CACHE = 'pocket-arcade-v2';
+const CACHE = 'pocket-arcade-v2.1';
 
 const PRECACHE = [
   './',
@@ -22,7 +22,8 @@ const PRECACHE = [
   './tetris.html',          // ← قبلاً /tetris.html بود
   './2048.html',            // ← جدید (جا افتاده بود)
   './memory-match.html',    // ← جدید (جا افتاده بود)
-  './pinkie-adventure.html' // ← جدید (جا افتاده بود)
+  './pinkie-adventure.html', // ← جدید (جا افتاده بود)
+  '/neon-survivor.html'
 ];
 
 /* ── Install: precache all, then activate immediately ── */
@@ -72,6 +73,9 @@ self.addEventListener('fetch', function (e) {
 
   // فقط GET
   if (req.method !== 'GET') return;
+
+  // فقط http/https — درخواست‌های chrome-extension:// و مشابه (از ایکستنشن‌ها) رو رد کن
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
 
   // ─── API و WebSocket → Network-only ───
   if (url.pathname.startsWith('/api/') || url.pathname === '/ws') {
