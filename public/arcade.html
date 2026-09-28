@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#06080F">
 <link rel="manifest" href="./manifest.json">
+<script src="./arcade-shared.js"></script>
 <link rel="icon" type="image/svg+xml" href="./icon.svg">
 <link rel="apple-touch-icon" href="./icon.svg">
 
@@ -1141,6 +1142,136 @@
   .pf-hero-avatar.view-only:active {
     transform: none;
   }
+  
+  /* ── Achievements ── */
+  .pf-achievements {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .pf-ach-card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.7rem 1rem;
+    background: var(--bg-card);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    transition: all 0.25s;
+  }
+  .pf-ach-card.unlocked {
+    border-color: #f59e0b;
+    background: rgba(245,158,11,0.06);
+  }
+  .pf-ach-icon {
+    font-size: 1.5rem;
+  }
+  .pf-ach-info {
+    flex: 1;
+  }
+  .pf-ach-name {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .pf-ach-desc {
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-top: 0.1rem;
+  }
+  .pf-ach-lock {
+    color: #6b7280;
+    font-size: 0.75rem;
+  }
+
+  /* ── History ── */
+  .pf-hist-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .pf-hist-row:last-child {
+    border-bottom: none;
+  }
+  .pf-hist-icon {
+    font-size: 1.2rem;
+  }
+  .pf-hist-info {
+    flex: 1;
+  }
+  .pf-hist-game {
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  .pf-hist-score {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .pf-hist-score.is-record {
+    color: #f59e0b;
+  }
+  .pf-hist-date {
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  /* ── Edit Section ── */
+  .pf-edit-section {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+  }
+  .pf-edit-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+  }
+  .pf-edit-avatar {
+    font-size: 2rem;
+  }
+  .pf-edit-input {
+    flex: 1;
+    padding: 0.6rem 1rem;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 0.9rem;
+    font-family: inherit;
+  }
+  .pf-edit-input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .pf-edit-btn {
+    padding: 0.6rem 1.2rem;
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .pf-edit-btn:hover {
+    filter: brightness(1.1);
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 640px) {
+    .pf-kpi-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+    .pf-hero-name {
+      font-size: 1.4rem;
+    }
+  }
+</style>
 </style>
 </head>
 <body class="min-h-screen text-slate-100">
@@ -1162,9 +1293,15 @@
 <main class="relative z-10 max-w-5xl mx-auto px-4 pt-10 pb-16">
 
   <header class="text-center mb-10 rise-in">
-    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-800/60 border border-slate-700 mb-5">
-      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-      <span class="px-font text-[8px] text-emerald-300 tracking-widest">ONLINE</span>
+    <div class="flex items-center justify-center gap-3 mb-5">
+      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-800/60 border border-slate-700">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span class="px-font text-[8px] text-emerald-300 tracking-widest">ONLINE</span>
+      </div>
+      <!-- <button id="arcadeMuteBtn" type="button" title="صدا" -->
+              <!-- class="w-9 h-9 rounded-full bg-slate-800/60 border border-slate-700 hover:border-slate-500 transition flex items-center justify-center text-base"
+              aria-label="قطع صدا">🔊
+      </button> -->
     </div>
 
     <h1 class="px-font text-2xl sm:text-4xl md:text-5xl text-transparent bg-clip-text bg-gradient-to-l from-emerald-300 via-pink-300 to-amber-300 mb-4 leading-tight">
@@ -1373,6 +1510,23 @@
       </div>
     </a>
 
+    <a href="./neon-survivor.html" data-game="neon-survivor" data-title="Neon Survivor" data-icon="🌟"
+      data-accent="#00F0FF" data-accent-dark="#007A96"
+      class="game-card rise-in" style="animation-delay:.55s; --card-accent:#00F0FF; --card-glow:rgba(0,240,255,.18); --card-shadow:rgba(0,240,255,.45); --icon-bg:rgba(0,240,255,.12)">
+      <div class="icon-frame">
+        <span class="best-badge"><span class="trophy">🏆</span><span class="val">—</span></span>
+        <span class="game-icon">🌟</span>
+      </div>
+      <div class="card-body">
+        <div class="flex items-center justify-between gap-2">
+          <h2 class="card-title">Neon Survivor</h2>
+          <span class="card-tag" style="color:#00F0FF;border-color:rgba(0,240,255,.4)">بقا</span>
+        </div>
+        <p class="card-desc">تا می‌تونی زنده بمون، شلیک خودکاره، XP جمع کن و آپگرید بگیر.</p>
+        <span class="play-btn">▷ بازی کن</span>
+      </div>
+    </a>
+
     <!-- 🦄 Pinkie Runner -->
     <a href="./popo.html" data-game="pony" data-title="Pinkie Runner" data-icon="🦄"
        data-accent="#FF6B9D" data-accent-dark="#B23A69"
@@ -1513,6 +1667,7 @@
      ۲) بارگذاری رکوردها روی کارت‌ها
      ══════════════════════════════════════════ */
   const ALIAS = {
+    'neon-survivor': 'neon-survivor', 'survivor': 'neon-survivor',
     'pinkie-adventure': 'pinkie-adventure',
     'pinkie': 'pinkie-adventure',
     'adventure': 'pinkie-adventure',
@@ -1792,7 +1947,8 @@
     '👾','🤖','👽','🎃','⚡','🔥','💎','🌟','🚀','🎯'
   ];
 
-  const GAME_META = {
+const GAME_META = {
+    'neon-survivor': { icon: '🌟', name: 'Neon Survivor' },
     'pinkie-adventure': { icon: '🍰', name: 'Pinkie Adventure' },
     'breakout': { icon: '🧱', name: 'Breakout' },
     '2048':    { icon: '🔢', name: '2048' },
@@ -1805,6 +1961,40 @@
     'pong':    { icon: '🏓', name: 'Pong' },
     'pony':    { icon: '🦄', name: 'Pinkie Runner' }
   };
+
+  // ── دستاوردهای سختکد شده ──
+  const ACHIEVEMENTS = [
+    {
+      icon: '🎮',
+      name: 'اولین بازی',
+      desc: 'اولین رکوردت ثبت شد',
+      check: (d) => d.stats.total_plays >= 1
+    },
+    {
+      icon: '🔥',
+      name: '۷ روز پیاپی',
+      desc: 'هفته‌ای بازی کردی',
+      check: (d) => d.stats.streak_days >= 7
+    },
+    {
+      icon: '💯',
+      name: '۱۰۰ بازی',
+      desc: 'صد بار بازی کردی',
+      check: (d) => d.stats.total_plays >= 100
+    },
+    {
+      icon: '🏆',
+      name: 'جهان‌بر',
+      desc: 'در یک بازی رتبه‌ی اول جهانی',
+      check: (d) => d.games.some(g => g.global_rank === 1)
+    },
+    {
+      icon: '🔒',
+      name: 'به زودی',
+      desc: 'در دسترس نیست',
+      check: () => false
+    }
+  ];
 
   const $pfModal        = document.getElementById('profileModal');
   const $pfBody         = document.getElementById('pfBody');
@@ -2073,6 +2263,8 @@
       </div>
     `;
 
+    const achievedCount = ACHIEVEMENTS.filter(a => a.check(data)).length;
+
     $pfBody.innerHTML = `
       <div class="pf-hero">
         <button class="${heroClass}" id="pfHeroAvatar" type="button">${displayAvatar}</button>
@@ -2098,10 +2290,29 @@
       <div class="pf-section">
         <h3 class="pf-section-title">🕰 تاریخچه <span class="count">${data.recent.length} اخیر</span></h3>
         ${historyHtml}
-      </div>
+              </div>
 
-      ${editSection}
-    `;
+              <!-- ═══ دستاوردها ═══ -->
+              <div class="pf-section">
+                <h3 class="pf-section-title">🏆 دستاوردها <span class="count">${achievedCount} از ${ACHIEVEMENTS.length}</span></h3>
+                <div class="pf-achievements">
+                  ${ACHIEVEMENTS.map(a => {
+                    const unlocked = a.check(data);
+                    return `
+                      <div class="pf-ach-card${unlocked ? '' : ' locked'}">
+                        <div class="pf-ach-icon">${unlocked ? a.icon : '🔒'}</div>
+                        <div class="pf-ach-info">
+                          <div class="pf-ach-name">${a.name}</div>
+                          <div class="pf-ach-desc">${a.desc}</div>
+                        </div>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+
+              ${editSection}
+            `;
 
     if (!viewOnly) attachBodyHandlers();
   }
@@ -2409,7 +2620,27 @@
       document.body.classList.remove('modal-open');
     }
   });
-
+  /* ══════════════════════════════════════════
+     ۷) Mute همهی بازیها
+     ══════════════════════════════════════════ */
+  const $arcadeMuteBtn = document.getElementById('arcadeMuteBtn');
+  function updateArcadeMute() {
+    if (!window.ArcadeShared || !$arcadeMuteBtn) return;
+    const m = ArcadeShared.allMuted();
+    $arcadeMuteBtn.textContent = m ? '🔇' : '🔊';
+    $arcadeMuteBtn.classList.toggle('muted', m);
+  }
+  if (window.ArcadeShared && $arcadeMuteBtn) {
+    $arcadeMuteBtn.addEventListener('click', function () {
+      const next = !ArcadeShared.allMuted();
+      ArcadeShared.setAllMuted(next);
+      updateArcadeMute();
+      ArcadeShared.toast(next ? '🔇 همهی بازیها بیصدا شدند' : '🔊 همهی بازیها با صدا شدند', {
+        type: next ? 'danger' : 'success'
+      });
+    });
+    updateArcadeMute();
+  }
 })();
 
 </script>
