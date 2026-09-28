@@ -7,22 +7,22 @@
 const CACHE = 'pocket-arcade-v2';
 
 const PRECACHE = [
-  '/',
-  '/arcade.html',
-  '/manifest.json',
-  '/icon.svg',
-  '/score.js',
-  '/Balloon-Ride.html',
-  '/Pancake-Tower.html',
-  '/Simon-Says.html',
-  '/Snake.html',
-  '/pong.html',
-  '/popo.html',
-  '/breakout.html',
-  '/tetris.html',
-  '/2048.html',
-  '/memory-match.html',
-  '/pinkie-adventure.html'
+  './',
+  './arcade.html',
+  './manifest.json',
+  './icon.svg',
+  './score.js',
+  './Balloon-Ride.html',
+  './Pancake-Tower.html',
+  './Simon-Says.html',
+  './Snake.html',
+  './pong.html',
+  './popo.html',
+  './breakout.html',        // ← قبلاً /breakout.html بود
+  './tetris.html',          // ← قبلاً /tetris.html بود
+  './2048.html',            // ← جدید (جا افتاده بود)
+  './memory-match.html',    // ← جدید (جا افتاده بود)
+  './pinkie-adventure.html' // ← جدید (جا افتاده بود)
 ];
 
 /* ── Install: precache all, then activate immediately ── */
@@ -115,7 +115,7 @@ self.addEventListener('fetch', function (e) {
           // آفلاین: اول خود فایل، بعد arcade.html، بعد صفحه‌ی آفلاین
           return caches.match(req).then(function (cached) {
             if (cached) return cached;
-            return caches.match('/arcade.html').then(function (home) {
+            return caches.match('./arcade.html').then(function (home) {
               if (home) return home;
               return offlinePage();
             });
