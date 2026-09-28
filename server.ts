@@ -132,6 +132,7 @@ const server = serve({
 
       return Response.json({ stats });
     }
+
     // ─── API: آمار یک بازیکن ───
     if (path === "/api/player-stats" && req.method === "GET") {
       const name = (url.searchParams.get("name") || "").trim();
@@ -164,6 +165,151 @@ const server = serve({
         name,
         stats: rows,
         total: totalRow || { total_plays: 0, best_ever: 0 }
+      });
+    }
+    // ─── API: پروفایل جامع بازیکن ───
+    if (path === "/api/player-profile" && req.method === "GET") {
+      const name = (url.searchParams.get("name") || "").trim();
+      if (!name) return Response.json({ error: "name required" }, { status: 400 });
+
+      // ── ۱. اطلاعات پایه ──
+      const profileRow = db.query(`
+        SELECT
+          MIN(created_at) AS first_seen,
+          MAX(created_at) AS last_seen,
+          COUNT(*) AS total_plays,
+          MAX(score) AS best_ever,
+          COUNT(DISTINCT game) AS unique_games
+        FROM scores WHERE player_name = $name
+      `).get({ $name: name }) as any;
+
+      if (!profileRow || profileRow.total_plays === 0) {
+        return Response.json({ error: "player not found" }, { status: 404 });
+      }
+
+      // ── ۲. آواتار از آخرین بازی ──
+      const avatarRow = db.query(`
+        SELECT meta FROM scores
+        WHERE player_name = $name AND meta IS NOT NULL
+        ORDER BY created_at DESC
+        LIMIT 1
+      `).get({ $name: name }) as any;
+
+      let avatar = '🦊';
+      if (avatarRow && avatarRow.meta) {
+        try {
+          const parsed = JSON.parse(avatarRow.meta);
+          if (parsed.avatar) avatar = parsed.avatar;
+        } catch {}
+      }
+
+      // ── ۳. رتبه و تعداد کل بازیکنها ──
+      const rankRow = db.query(`
+        SELECT
+          (SELECT COUNT(*) + 1 FROM (
+            SELECT MAX(score) AS best FROM scores
+            WHERE player_name != $name
+            GROUP BY player_name
+            HAVING MAX(score) > (SELECT MAX(score) FROM scores WHERE player_name = $name)
+          )) AS rank,
+          (SELECT COUNT(DISTINCT player_name) FROM scores) AS total_players
+      `).get({ $name: name }) as any;
+
+      // ── ۴. روزهای پیاپی (UTC-based، بدون باگ مرز ماه) ──
+      const playDates = db.query(`
+        SELECT DATE(created_at) AS play_date FROM scores
+        WHERE player_name = $name
+        GROUP BY DATE(created_at)
+        ORDER BY play_date DESC
+      `).all({ $name: name }) as Array<{ play_date: string }>;
+
+      let streakDays = 0;
+      if (playDates.length > 0) {
+        const now = new Date();
+        const todayUTC = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+        let expectedUTC = todayUTC;
+
+        for (const row of playDates) {
+          const [y, m, d] = row.play_date.split('-').map(Number);
+          const rowUTC = Date.UTC(y, m - 1, d);
+          if (rowUTC === expectedUTC) {
+            streakDays++;
+            expectedUTC -= 86400000;
+          } else if (rowUTC < expectedUTC) {
+            break;
+          }
+        }
+      }
+
+      // ── ۵. فعالیت ۷ روز اخیر (با پر کردن روزهای خالی) ──
+      const activityRaw = db.query(`
+        SELECT DATE(created_at) AS date, COUNT(*) AS plays FROM scores
+        WHERE player_name = $name
+          AND created_at >= DATE('now', '-6 days')
+        GROUP BY DATE(created_at)
+        ORDER BY date ASC
+      `).all({ $name: name }) as Array<{ date: string; plays: number }>;
+
+      const activityMap = new Map(activityRaw.map(a => [a.date, a.plays]));
+      const activity: Array<{ date: string; plays: number }> = [];
+      const today = new Date();
+
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        const key = d.toISOString().split('T')[0];
+        activity.push({ date: key, plays: activityMap.get(key) || 0 });
+      }
+
+      // ── ۶. بازیها با رتبه و بهترین رکورد جهانی ──
+      const gamesWithRank = db.query(`
+        SELECT
+          g.game,
+          g.plays,
+          g.best,
+          g.last_played,
+          (SELECT MAX(score) FROM scores WHERE game = g.game) AS global_best,
+          (SELECT COUNT(*) + 1 FROM (
+            SELECT MAX(score) AS s FROM scores s2
+            WHERE s2.game = g.game AND s2.player_name != $name
+            GROUP BY s2.player_name
+            HAVING MAX(score) > g.best
+          )) AS global_rank
+        FROM (
+          SELECT game, COUNT(*) AS plays, MAX(score) AS best, MAX(created_at) AS last_played
+          FROM scores WHERE player_name = $name
+          GROUP BY game
+        ) g
+        ORDER BY g.last_played DESC
+      `).all({ $name: name });
+
+      // ── ۷. ۲۰ بازی آخر ──
+      const recent = db.query(`
+        SELECT game, score, created_at, meta FROM scores
+        WHERE player_name = $name
+        ORDER BY created_at DESC
+        LIMIT 20
+      `).all({ $name: name });
+
+      return Response.json({
+        profile: {
+          name,
+          avatar,
+          first_seen: profileRow.first_seen,
+          last_seen: profileRow.last_seen,
+          total_plays: profileRow.total_plays,
+          rank: rankRow?.rank || 1,
+          total_players: rankRow?.total_players || 1
+        },
+        stats: {
+          total_plays: profileRow.total_plays,
+          unique_games: profileRow.unique_games,
+          best_ever: profileRow.best_ever,
+          streak_days: streakDays
+        },
+        games: gamesWithRank,
+        activity,
+        recent
       });
     }
 

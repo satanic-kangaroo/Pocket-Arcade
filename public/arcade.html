@@ -440,7 +440,7 @@
   }
   .pf-panel {
     position: relative;
-    width: 100%; max-width: 24rem; max-height: 90vh;
+    width: 100%; max-width: 26rem; max-height: 90vh;
     display: flex; flex-direction: column;
     border-radius: 1.25rem;
     background: linear-gradient(180deg, #131C2E 0%, #0B1220 100%);
@@ -482,38 +482,302 @@
   }
   .pf-close:hover { background: rgba(255,255,255,0.09); color: #E2E8F0; }
 
+  /* ── بدنه (اسکرول) ── */
   .pf-body {
-    flex: 1; overflow-y: auto;
-    padding: 1.25rem 1.2rem;
-    display: flex; flex-direction: column; gap: 1.25rem;
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+    -webkit-overflow-scrolling: touch;
   }
 
-  .pf-avatar-section { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
-  .pf-avatar-big {
-    width: 6rem; height: 6rem;
+  /* ── Hero ── */
+  .pf-hero {
+    padding: 1.5rem 1.2rem 1.2rem;
+    text-align: center;
+    background: linear-gradient(180deg, rgba(62,230,160,0.06) 0%, transparent 100%);
+    border-bottom: 1px solid rgba(71,85,105,0.3);
+  }
+  .pf-hero-avatar {
+    width: 5.5rem; height: 5.5rem;
+    margin: 0 auto 0.9rem;
     display: flex; align-items: center; justify-content: center;
     border-radius: 50%;
     background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
     border: 3px solid rgba(62,230,160,0.6);
     box-shadow: 0 0 32px -8px rgba(62,230,160,0.6), 0 0 0 6px rgba(62,230,160,0.08);
-    font-size: 3rem;
+    font-size: 2.8rem;
     cursor: pointer;
     transition: all .2s;
     font-family: inherit;
     line-height: 1;
+    position: relative;
   }
-  .pf-avatar-big:hover {
+  .pf-hero-avatar::after {
+    content: '✏️';
+    position: absolute;
+    bottom: -4px; right: -4px;
+    width: 1.5rem; height: 1.5rem;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    background: #3EE6A0;
+    font-size: 0.7rem;
+    border: 2px solid #0B1220;
+    line-height: 1;
+  }
+  .pf-hero-avatar:hover {
     transform: scale(1.05);
     box-shadow: 0 0 40px -6px rgba(62,230,160,0.8), 0 0 0 8px rgba(62,230,160,0.12);
   }
-  .pf-avatar-big:active { transform: scale(0.98); }
-  .pf-avatar-hint { font-size: 0.7rem; color: #64748B; margin: 0; }
+  .pf-hero-avatar:active { transform: scale(0.97); }
 
+  .pf-hero-name {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #E2E8F0;
+    margin: 0 0 0.5rem;
+    line-height: 1.3;
+  }
+  .pf-hero-meta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    font-size: 0.72rem;
+    color: #94A3B8;
+  }
+  .pf-rank-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, rgba(255,209,102,0.18), rgba(255,209,102,0.08));
+    border: 1px solid rgba(255,209,102,0.4);
+    color: #FFD166;
+    font-weight: 700;
+  }
+
+  /* ── KPI Grid ── */
+  .pf-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+    padding: 1rem 1.2rem;
+    border-bottom: 1px solid rgba(71,85,105,0.3);
+  }
+  .pf-kpi {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(71,85,105,0.35);
+    border-radius: 0.7rem;
+    padding: 0.7rem 0.5rem;
+    text-align: center;
+  }
+  .pf-kpi-value {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.85rem;
+    color: #3EE6A0;
+    margin-bottom: 0.4rem;
+    line-height: 1.2;
+  }
+  .pf-kpi-value.gold { color: #FFD166; }
+  .pf-kpi-value.pink { color: #FF6B9D; }
+  .pf-kpi-value.cyan { color: #00F0FF; }
+  .pf-kpi-label {
+    font-size: 0.65rem;
+    color: #94A3B8;
+    line-height: 1.3;
+  }
+
+  /* ── Section ── */
+  .pf-section {
+    padding: 1rem 1.2rem;
+    border-bottom: 1px solid rgba(71,85,105,0.3);
+  }
+  .pf-section:last-child { border-bottom: none; }
+  .pf-section-title {
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: #E2E8F0;
+    margin: 0 0 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .pf-section-title .count {
+    color: #64748B;
+    font-weight: 400;
+    font-size: 0.7rem;
+    margin-inline-start: auto;
+  }
+
+  /* ── Activity Chart ── */
+  .pf-activity {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 0.4rem;
+    height: 90px;
+    direction: ltr;
+    padding: 0 0.25rem;
+  }
+  .pf-act-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    height: 100%;
+    justify-content: flex-end;
+  }
+  .pf-act-bar-wrap {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .pf-act-bar {
+    width: 60%;
+    max-width: 22px;
+    background: linear-gradient(180deg, #3EE6A0, #1E7A52);
+    border-radius: 4px 4px 0 0;
+    transition: height .4s cubic-bezier(.22,1,.36,1);
+    box-shadow: 0 0 12px -2px rgba(62,230,160,0.5);
+    min-height: 3px;
+  }
+  .pf-act-bar.zero {
+    background: rgba(255,255,255,0.05);
+    box-shadow: none;
+  }
+  .pf-act-day {
+    font-size: 0.6rem;
+    color: #64748B;
+    font-family: 'Vazirmatn', sans-serif;
+    line-height: 1;
+  }
+  .pf-act-day.today {
+    color: #3EE6A0;
+    font-weight: 800;
+  }
+
+  /* ── Game Cards ── */
+  .pf-games {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .pf-game-card {
+    padding: 0.7rem 0.8rem;
+    border-radius: 0.75rem;
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(71,85,105,0.35);
+    transition: all .18s;
+  }
+  .pf-game-card:hover {
+    background: rgba(255,255,255,0.04);
+    border-color: rgba(100,116,139,0.6);
+  }
+  .pf-game-head {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.55rem;
+  }
+  .pf-game-icon {
+    font-size: 1.5rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .pf-game-info { flex: 1; min-width: 0; }
+  .pf-game-name {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #E2E8F0;
+    margin: 0 0 0.15rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .pf-game-meta {
+    font-size: 0.65rem;
+    color: #64748B;
+  }
+  .pf-game-score {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.8rem;
+    color: #3EE6A0;
+    flex-shrink: 0;
+  }
+  .pf-game-progress {
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.06);
+    overflow: hidden;
+  }
+  .pf-game-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3EE6A0, #C084FC);
+    border-radius: 2px;
+    transition: width .6s cubic-bezier(.22,1,.36,1);
+  }
+  .pf-game-progress-fill.world-best {
+    background: linear-gradient(90deg, #FFD166, #FF6B9D);
+    box-shadow: 0 0 12px -2px rgba(255,209,102,0.6);
+  }
+
+  /* ── History ── */
+  .pf-history {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+  .pf-hist-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 0.6rem;
+    border-radius: 0.55rem;
+    background: rgba(255,255,255,0.02);
+    font-size: 0.75rem;
+  }
+  .pf-hist-icon {
+    font-size: 1.1rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .pf-hist-info { flex: 1; min-width: 0; }
+  .pf-hist-game {
+    font-weight: 600;
+    color: #CBD5E1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .pf-hist-date {
+    font-size: 0.62rem;
+    color: #64748B;
+    margin-top: 1px;
+  }
+  .pf-hist-score {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.7rem;
+    color: #94A3B8;
+    flex-shrink: 0;
+  }
+  .pf-hist-score.high { color: #FFD166; }
+
+  /* ── Edit Section ── */
+  .pf-edit {
+    padding: 1rem 1.2rem 1.2rem;
+    background: rgba(0,0,0,0.15);
+  }
   .pf-label {
     display: flex; flex-direction: column; gap: 0.4rem;
+    margin-bottom: 0.75rem;
   }
   .pf-label > span {
-    font-size: 0.75rem; font-weight: 700; color: #94A3B8;
+    font-size: 0.72rem; font-weight: 700; color: #94A3B8;
   }
   .pf-label input {
     width: 100%;
@@ -534,62 +798,6 @@
   }
   .pf-label input::placeholder { color: #475569; }
 
-  .pf-stats-section {
-    background: rgba(255,255,255,0.02);
-    border: 1px solid rgba(71,85,105,0.4);
-    border-radius: 0.9rem;
-    padding: 0.9rem;
-  }
-  .pf-stats-head {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 0.7rem;
-    padding-bottom: 0.6rem;
-    border-bottom: 1px solid rgba(71,85,105,0.3);
-  }
-  .pf-stats-title { font-size: 0.82rem; font-weight: 800; color: #E2E8F0; }
-  .pf-stats-total { font-size: 0.68rem; color: #64748B; }
-  .pf-stats-list {
-    display: flex; flex-direction: column; gap: 0.4rem;
-    max-height: 14rem; overflow-y: auto;
-  }
-  .pf-stat-row {
-    display: grid;
-    grid-template-columns: 1.5rem 1fr auto;
-    align-items: center;
-    gap: 0.6rem;
-    padding: 0.5rem 0.6rem;
-    border-radius: 0.55rem;
-    background: rgba(255,255,255,0.025);
-    font-size: 0.78rem;
-  }
-  .pf-stat-icon { font-size: 1.05rem; text-align: center; }
-  .pf-stat-name { color: #CBD5E1; font-weight: 600; }
-  .pf-stat-name small { color: #64748B; font-weight: 400; font-size: 0.65rem; margin-inline-start: 0.35rem; }
-  .pf-stat-score {
-    font-family: 'Press Start 2P', monospace;
-    font-size: 0.72rem;
-    color: #3EE6A0;
-    letter-spacing: 0.02em;
-  }
-  .pf-stats-empty {
-    text-align: center;
-    padding: 1.2rem 0.5rem;
-    color: #64748B;
-    font-size: 0.75rem;
-    line-height: 1.6;
-  }
-  .pf-stats-loading {
-    text-align: center;
-    padding: 1rem;
-    color: #64748B;
-    font-size: 0.72rem;
-  }
-
-  .pf-footer {
-    padding: 0.85rem 1.2rem 1rem;
-    border-top: 1px solid rgba(71,85,105,0.4);
-    background: rgba(0,0,0,0.15);
-  }
   .pf-save {
     width: 100%;
     display: flex; align-items: center; justify-content: center; gap: 0.5rem;
@@ -606,6 +814,43 @@
   .pf-save:hover { filter: brightness(1.08); }
   .pf-save:active { transform: translateY(3px); box-shadow: 0 1px 0 0 #1E7A52; }
   .pf-save:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ── Empty / Loading ── */
+  .pf-empty {
+    padding: 2rem 1rem;
+    text-align: center;
+    color: #64748B;
+  }
+  .pf-empty-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+    opacity: 0.7;
+    display: block;
+  }
+  .pf-empty-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #94A3B8;
+    margin-bottom: 0.3rem;
+  }
+  .pf-empty-desc {
+    font-size: 0.72rem;
+    line-height: 1.6;
+  }
+  .pf-loading {
+    padding: 2rem 1rem;
+    text-align: center;
+    color: #64748B;
+    font-size: 0.75rem;
+  }
+  .pf-spinner {
+    width: 28px; height: 28px;
+    margin: 0 auto 0.85rem;
+    border-radius: 50%;
+    border: 3px solid rgba(255,255,255,0.08);
+    border-top-color: #3EE6A0;
+    animation: spin 0.85s linear infinite;
+  }
 
   /* ── انتخابگر آواتار ── */
   .pf-picker {
@@ -868,6 +1113,33 @@
     font-size: 0.78rem;
     color: #3EE6A0;
     font-weight: 700;
+  }
+
+    /* ═══ ردیفهای کلیکپذیر لیدربورد ═══ */
+  .lb-row[data-player-name]:not(.is-me) {
+    cursor: pointer;
+  }
+  .lb-row[data-player-name]:not(.is-me):hover {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(100,116,139,0.4);
+  }
+  .lb-row[data-player-name]:not(.is-me):active {
+    transform: scale(0.99);
+  }
+
+  /* ── Hero در حالت نمایش فقط (پروفایل بازیکن دیگه) ── */
+  .pf-hero-avatar.view-only {
+    cursor: default;
+  }
+  .pf-hero-avatar.view-only::after {
+    display: none;
+  }
+  .pf-hero-avatar.view-only:hover {
+    transform: none;
+    box-shadow: 0 0 32px -8px rgba(62,230,160,0.6), 0 0 0 6px rgba(62,230,160,0.08);
+  }
+  .pf-hero-avatar.view-only:active {
+    transform: none;
   }
 </style>
 </head>
@@ -1161,31 +1433,7 @@
       <button class="pf-close" data-pf-close aria-label="بستن" type="button">✕</button>
     </div>
 
-    <div class="pf-body">
-      <div class="pf-avatar-section">
-        <button class="pf-avatar-big" id="pfAvatarBtn" type="button">🦊</button>
-        <p class="pf-avatar-hint">برای تغییر، روی آواتار بزن</p>
-      </div>
-
-      <label class="pf-label">
-        <span>اسم بازیکن</span>
-        <input type="text" id="pfNameInput" maxlength="20" placeholder="اسمت رو بنویس..." autocomplete="off">
-      </label>
-
-      <div class="pf-stats-section">
-        <div class="pf-stats-head">
-          <span class="pf-stats-title">🏆 رکوردهای من</span>
-          <span class="pf-stats-total" id="pfStatsTotal"></span>
-        </div>
-        <div class="pf-stats-list" id="pfStatsList">
-          <div class="pf-stats-empty">ثبت کن تا رکوردهات اینجا نمایش داده بشه</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="pf-footer">
-      <button class="pf-save" id="pfSaveBtn" type="button">💾 ذخیره</button>
-    </div>
+    <div class="pf-body" id="pfBody"></div>
 
     <div class="pf-picker" id="pfPicker" hidden>
       <div class="pf-picker-head">
@@ -1331,6 +1579,18 @@
   const $title   = document.getElementById('lbTitle');
   const $sub     = document.getElementById('lbSub');
   const $body    = document.getElementById('lbBody');
+    // ── کلیک روی ردیفهای لیدربورد → پروفایل بازیکن ──
+  $body.addEventListener('click', function (e) {
+    const row = e.target.closest('.lb-row');
+    if (!row || !row.dataset.playerName) return;
+    const name = row.dataset.playerName;
+    const myName = getPlayerName();
+    if (name === myName) return;
+    e.preventDefault();
+    e.stopPropagation();
+    closeModal();
+    openProfileByName(name);
+  });
   const $play    = document.getElementById('lbPlayBtn');
   const $total   = document.getElementById('lbTotal');
 
@@ -1457,10 +1717,12 @@
       else if (rank === 3) { rankHtml = '🥉'; rankClass += ' medal'; }
       else { rankHtml = String(rank).padStart(2, '0'); }
 
-      const rowClass =
+            const rowClass =
         'lb-row' +
         (rank <= 3 ? ' rank-' + rank : '') +
         (isMe ? ' is-me' : '');
+
+      const rowAttr = isMe ? '' : ' data-player-name="' + escapeHtml(name) + '"';
 
       // نمایش تعداد بازی فقط اگه بیشتر از ۱ باشه
       const playsBadge = plays > 1
@@ -1468,7 +1730,7 @@
         : '';
 
       html +=
-        '<div class="' + rowClass + '">' +
+        '<div class="' + rowClass + '"' + rowAttr + '>' +
           '<span class="' + rankClass + '">' + rankHtml + '</span>' +
           '<span class="lb-name">' +
             '<span class="lb-avatar">' + escapeHtml(avatar) + '</span>' +
@@ -1522,7 +1784,7 @@
   });
 
   /* ══════════════════════════════════════════
-     ۵) پروفایل بازیکن
+     ۵) پروفایل بازیکن — نسخهی جدید
      ══════════════════════════════════════════ */
   const AVATARS = [
     '🦊','🐱','🐼','🐯','🦁','🐸','🐙','🦄','🐲','🦖',
@@ -1530,11 +1792,11 @@
     '👾','🤖','👽','🎃','⚡','🔥','💎','🌟','🚀','🎯'
   ];
 
-const GAME_META = {
+  const GAME_META = {
     'pinkie-adventure': { icon: '🍰', name: 'Pinkie Adventure' },
     'breakout': { icon: '🧱', name: 'Breakout' },
     '2048':    { icon: '🔢', name: '2048' },
-    'memory': { icon: '🎴', name: 'Memory Match' },
+    'memory':  { icon: '🎴', name: 'Memory Match' },
     'tetris':  { icon: '🎮', name: 'Tetris' },
     'balloon': { icon: '🎈', name: 'Balloon Ride' },
     'pancake': { icon: '🥞', name: 'Pancake Tower' },
@@ -1542,17 +1804,13 @@ const GAME_META = {
     'snake':   { icon: '🐍', name: 'Snake' },
     'pong':    { icon: '🏓', name: 'Pong' },
     'pony':    { icon: '🦄', name: 'Pinkie Runner' }
-};
+  };
 
-  const $pfModal       = document.getElementById('profileModal');
-  const $pfAvatarBtn   = document.getElementById('pfAvatarBtn');
-  const $pfNameInput   = document.getElementById('pfNameInput');
-  const $pfSaveBtn     = document.getElementById('pfSaveBtn');
-  const $pfStatsList   = document.getElementById('pfStatsList');
-  const $pfStatsTotal  = document.getElementById('pfStatsTotal');
-  const $pfPicker      = document.getElementById('pfPicker');
-  const $pfPickerGrid  = document.getElementById('pfPickerGrid');
-  const $pfPickerClose = document.getElementById('pfPickerClose');
+  const $pfModal        = document.getElementById('profileModal');
+  const $pfBody         = document.getElementById('pfBody');
+  const $pfPicker       = document.getElementById('pfPicker');
+  const $pfPickerGrid   = document.getElementById('pfPickerGrid');
+  const $pfPickerClose  = document.getElementById('pfPickerClose');
 
   const $profileBtn    = document.getElementById('profileBtn');
   const $profileAvatar = document.getElementById('profileAvatar');
@@ -1561,6 +1819,8 @@ const GAME_META = {
   const $wbOpenProfile = document.getElementById('wbOpenProfile');
 
   let pfTempAvatar = '🦊';
+  let pfLastFocus = null;
+  let pfProfileData = null;
 
   function readProfile() {
     return {
@@ -1592,90 +1852,399 @@ const GAME_META = {
     $pfPickerGrid.querySelectorAll('.pf-picker-item').forEach(function (el) {
       el.addEventListener('click', function () {
         pfTempAvatar = el.dataset.avatar;
-        $pfAvatarBtn.textContent = pfTempAvatar;
         $pfPickerGrid.querySelectorAll('.pf-picker-item').forEach(function (x) {
           x.classList.toggle('selected', x.dataset.avatar === pfTempAvatar);
         });
+        // Update hero avatar immediately
+        const heroAv = $pfBody.querySelector('#pfHeroAvatar');
+        if (heroAv) heroAv.textContent = pfTempAvatar;
       });
     });
   }
 
-  async function loadMyStats(name) {
-    if (!name) {
-      $pfStatsList.innerHTML = '<div class="pf-stats-empty">اول اسمت رو ذخیره کن</div>';
-      $pfStatsTotal.textContent = '';
-      return;
+  /* ── Time helpers ── */
+  function parseUTC(s) {
+    if (!s) return null;
+    return new Date(String(s).replace(' ', 'T') + 'Z');
+  }
+
+  function timeAgo(dateStr) {
+    const d = parseUTC(dateStr);
+    if (!d) return '';
+    const diff = Date.now() - d.getTime();
+    const sec = Math.floor(diff / 1000);
+    if (sec < 60) return 'همین حالا';
+    const min = Math.floor(sec / 60);
+    if (min < 60) return min + ' دقیقه پیش';
+    const hr = Math.floor(min / 60);
+    if (hr < 24) return hr + ' ساعت پیش';
+    const day = Math.floor(hr / 24);
+    if (day < 30) return day + ' روز پیش';
+    const months = ['ژانویه','فوریه','مارس','آپریل','مه','ژوئن','ژوئیه','اوت','سپتامبر','اکتبر','نوامبر','دسامبر'];
+    return d.getDate() + ' ' + months[d.getMonth()];
+  }
+
+  function daysSince(dateStr) {
+    const d = parseUTC(dateStr);
+    if (!d) return 0;
+    return Math.floor((Date.now() - d.getTime()) / 86400000);
+  }
+
+  function fmtScore(n) {
+    n = Math.floor(Number(n) || 0);
+    return String(n).padStart(4, '0');
+  }
+
+  /* ── Empty state (no games yet) ── */
+  function renderEmptyState(name) {
+    const p = readProfile();
+    return `
+      <div class="pf-hero">
+        <button class="pf-hero-avatar" id="pfHeroAvatar" type="button">${pfTempAvatar}</button>
+        <h2 class="pf-hero-name">${escapeHtml(name || p.name || 'مهمان')}</h2>
+        <div class="pf-hero-meta">
+          <span>عضو جدید</span>
+        </div>
+      </div>
+      <div class="pf-empty">
+        <span class="pf-empty-icon">🎮</span>
+        <div class="pf-empty-title">هنوز بازی نکردی!</div>
+        <div class="pf-empty-desc">
+          برو یه بازی انتخاب کن و اولین رکوردت رو ثبت کن.<br>
+          بعدش اینجا همهی آمارت رو میبینی.
+        </div>
+      </div>
+      <div class="pf-edit">
+        <label class="pf-label">
+          <span>اسم بازیکن</span>
+          <input type="text" id="pfNameInput" maxlength="20" placeholder="اسمت رو بنویس..." value="${escapeHtml(p.name)}" autocomplete="off">
+        </label>
+        <button class="pf-save" id="pfSaveBtn" type="button">💾 ذخیره</button>
+      </div>
+    `;
+  }
+
+  /* ── Full profile ── */
+  function renderProfile(data, viewOnly) {
+    viewOnly = !!viewOnly;
+
+    const p = readProfile();
+    const displayAvatar = viewOnly
+      ? (data.profile.avatar || '🦊')
+      : (p.avatar || data.profile.avatar || '🦊');
+    const displayName = data.profile.name;
+
+    // Rank badge
+    let rankBadge = '';
+    if (data.profile.rank && data.profile.total_players > 1) {
+      const rank = data.profile.rank;
+      let medal;
+      if (rank === 1) medal = '🥇';
+      else if (rank === 2) medal = '🥈';
+      else if (rank === 3) medal = '🥉';
+      else medal = '🏅';
+      rankBadge = `<span class="pf-rank-badge">${medal} رتبه‌ی ${rank} از ${data.profile.total_players}</span>`;
     }
 
-    $pfStatsList.innerHTML = '<div class="pf-stats-loading">در حال بارگذاری...</div>';
+    // Joined text
+    const days = daysSince(data.profile.first_seen);
+    let joinedText;
+    if (days <= 0) joinedText = 'عضو جدید';
+    else if (days === 1) joinedText = 'دیروز عضو شد';
+    else joinedText = 'عضو از ' + days + ' روز پیش';
 
-    try {
-      const res = await fetch('api/player-stats?name=' + encodeURIComponent(name), { cache: 'no-store' });
-      if (!res.ok) throw new Error('bad');
-      const data = await res.json();
+    // KPI
+    const totalGames = Object.keys(GAME_META).length;
+    const kpiHtml = `
+      <div class="pf-kpi-grid">
+        <div class="pf-kpi">
+          <div class="pf-kpi-value">${data.stats.total_plays}</div>
+          <div class="pf-kpi-label">🎮 کل بازی</div>
+        </div>
+        <div class="pf-kpi">
+          <div class="pf-kpi-value cyan">${data.stats.unique_games}/${totalGames}</div>
+          <div class="pf-kpi-label">🎯 بازی امتحانشده</div>
+        </div>
+        <div class="pf-kpi">
+          <div class="pf-kpi-value gold">${fmtScore(data.stats.best_ever)}</div>
+          <div class="pf-kpi-label">⭐ بهترین رکورد</div>
+        </div>
+        <div class="pf-kpi">
+          <div class="pf-kpi-value pink">${data.stats.streak_days > 0 ? data.stats.streak_days + ' روز' : '—'}</div>
+          <div class="pf-kpi-label">🔥 روز پیاپی</div>
+        </div>
+      </div>
+    `;
 
-      const stats = Array.isArray(data.stats) ? data.stats : [];
-      if (!stats.length) {
-        $pfStatsList.innerHTML = '<div class="pf-stats-empty">هنوز تو هیچ بازی‌ای رکورد نداری.<br>بازی کن تا اینجا پر شه! 🎮</div>';
-        $pfStatsTotal.textContent = '';
-        return;
-      }
+    // Activity chart
+    const maxPlays = Math.max(1, ...data.activity.map(a => a.plays));
+    const today = new Date().toISOString().split('T')[0];
+    const dayLabels = ['ی', 'د', 'س', 'چ', 'پ', 'ج', 'ش'];
 
-      let html = '';
-      stats.forEach(function (s) {
-        const key = String(s.game || '').toLowerCase();
-        const meta = GAME_META[key] || { icon: '🎮', name: s.game };
-        const best = Math.floor(Number(s.best) || 0);
-        const plays = Number(s.plays) || 0;
+    let activityHtml = '<div class="pf-activity">';
+    data.activity.forEach(a => {
+      const d = new Date(a.date + 'T00:00:00Z');
+      const dayIdx = d.getUTCDay();
+      const label = dayLabels[dayIdx];
+      const pct = (a.plays / maxPlays) * 100;
+      const isToday = a.date === today;
+      const barClass = a.plays === 0 ? 'pf-act-bar zero' : 'pf-act-bar';
+      const heightStyle = a.plays === 0 ? 'height:3px' : `height:${Math.max(8, pct)}%`;
+      activityHtml += `
+        <div class="pf-act-col">
+          <div class="pf-act-bar-wrap">
+            <div class="${barClass}" style="${heightStyle}"></div>
+          </div>
+          <div class="pf-act-day${isToday ? ' today' : ''}">${label}</div>
+        </div>
+      `;
+    });
+    activityHtml += '</div>';
 
-        html +=
-          '<div class="pf-stat-row">' +
-            '<span class="pf-stat-icon">' + meta.icon + '</span>' +
-            '<span class="pf-stat-name">' + meta.name +
-              '<small>(' + plays + ' بازی)</small>' +
-            '</span>' +
-            '<span class="pf-stat-score">' + String(best).padStart(4, '0') + '</span>' +
-          '</div>';
+    // Games
+    let gamesHtml = '';
+    if (!data.games.length) {
+      gamesHtml = '<div class="pf-empty"><div class="pf-empty-desc">هنوز بازیای نکردی</div></div>';
+    } else {
+      gamesHtml = '<div class="pf-games">';
+      data.games.forEach(g => {
+        const meta = GAME_META[g.game] || { icon: '🎮', name: g.game };
+        const best = Math.floor(g.best);
+        const globalBest = Math.floor(g.global_best || best);
+        const isWorldBest = best >= globalBest && globalBest > 0;
+        const pct = globalBest > 0 ? Math.min(100, (best / globalBest) * 100) : 100;
+        const rankText = g.global_rank > 0 ? ' · رتبه‌ی ' + g.global_rank : '';
+
+        gamesHtml += `
+          <div class="pf-game-card">
+            <div class="pf-game-head">
+              <div class="pf-game-icon">${meta.icon}</div>
+              <div class="pf-game-info">
+                <div class="pf-game-name">${escapeHtml(meta.name)}</div>
+                <div class="pf-game-meta">${g.plays} بازی · ${timeAgo(g.last_played)}${rankText}</div>
+              </div>
+              <div class="pf-game-score">${fmtScore(best)}</div>
+            </div>
+            <div class="pf-game-progress">
+              <div class="pf-game-progress-fill${isWorldBest ? ' world-best' : ''}" style="width:${pct}%"></div>
+            </div>
+          </div>
+        `;
       });
+      gamesHtml += '</div>';
+    }
 
-      $pfStatsList.innerHTML = html;
+    // History
+    let historyHtml = '';
+    if (!data.recent.length) {
+      historyHtml = '<div class="pf-empty"><div class="pf-empty-desc">تاریخچهای نیست</div></div>';
+    } else {
+      const bestByGame = {};
+      data.games.forEach(g => { bestByGame[g.game] = g.best; });
 
-      const totalPlays = Number(data.total && data.total.total_plays) || 0;
-      const bestEver = Math.floor(Number(data.total && data.total.best_ever) || 0);
-      $pfStatsTotal.textContent = totalPlays + ' بازی · بهترین ' + String(bestEver).padStart(4, '0');
+      historyHtml = '<div class="pf-history">';
+      data.recent.forEach(r => {
+        const meta = GAME_META[r.game] || { icon: '🎮', name: r.game };
+        const isHigh = r.score === bestByGame[r.game];
+        historyHtml += `
+          <div class="pf-hist-row">
+            <span class="pf-hist-icon">${meta.icon}</span>
+            <div class="pf-hist-info">
+              <div class="pf-hist-game">${escapeHtml(meta.name)}</div>
+              <div class="pf-hist-date">${timeAgo(r.created_at)}</div>
+            </div>
+            <span class="pf-hist-score${isHigh ? ' high' : ''}">${fmtScore(r.score)}</span>
+          </div>
+        `;
+      });
+      historyHtml += '</div>';
+    }
 
-    } catch (err) {
-      $pfStatsList.innerHTML = '<div class="pf-stats-empty">ارتباط با سرور برقرار نشد</div>';
-      $pfStatsTotal.textContent = '';
+    const heroClass = viewOnly ? 'pf-hero-avatar view-only' : 'pf-hero-avatar';
+
+    // Edit section (فقط برای پروفایل خودمون)
+    const editSection = viewOnly ? '' : `
+      <div class="pf-edit">
+        <label class="pf-label">
+          <span>اسم بازیکن</span>
+          <input type="text" id="pfNameInput" maxlength="20" placeholder="اسمت رو بنویس..." value="${escapeHtml(p.name)}" autocomplete="off">
+        </label>
+        <button class="pf-save" id="pfSaveBtn" type="button">💾 ذخیره</button>
+      </div>
+    `;
+
+    $pfBody.innerHTML = `
+      <div class="pf-hero">
+        <button class="${heroClass}" id="pfHeroAvatar" type="button">${displayAvatar}</button>
+        <h2 class="pf-hero-name">${escapeHtml(displayName)}</h2>
+        <div class="pf-hero-meta">
+          <span>${joinedText}</span>
+          ${rankBadge ? '<span>·</span>' + rankBadge : ''}
+        </div>
+      </div>
+
+      ${kpiHtml}
+
+      <div class="pf-section">
+        <h3 class="pf-section-title">📅 فعالیت هفته</h3>
+        ${activityHtml}
+      </div>
+
+      <div class="pf-section">
+        <h3 class="pf-section-title">🎯 بازیهای من <span class="count">${data.games.length} بازی</span></h3>
+        ${gamesHtml}
+      </div>
+
+      <div class="pf-section">
+        <h3 class="pf-section-title">🕰 تاریخچه <span class="count">${data.recent.length} اخیر</span></h3>
+        ${historyHtml}
+      </div>
+
+      ${editSection}
+    `;
+
+    if (!viewOnly) attachBodyHandlers();
+  }
+  function attachBodyHandlers() {
+    const heroAv = $pfBody.querySelector('#pfHeroAvatar');
+    if (heroAv) {
+      heroAv.addEventListener('click', function () {
+        $pfPicker.hidden = false;
+        const sel = $pfPickerGrid.querySelector('.pf-picker-item.selected');
+        if (sel && sel.scrollIntoView) sel.scrollIntoView({ block: 'center' });
+      });
+    }
+    const saveBtn = $pfBody.querySelector('#pfSaveBtn');
+    const nameInput = $pfBody.querySelector('#pfNameInput');
+    if (saveBtn) saveBtn.addEventListener('click', saveProfile);
+    if (nameInput) {
+      nameInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); saveProfile(); }
+      });
     }
   }
 
-  let pfLastFocus = null;
+  /* ── Fetch ── */
+  async function fetchProfile(name) {
+    try {
+      const res = await fetch('api/player-profile?name=' + encodeURIComponent(name), { cache: 'no-store' });
+      if (res.status === 404) return { empty: true };
+      if (!res.ok) throw new Error('bad');
+      return await res.json();
+    } catch (err) {
+      return { error: true };
+    }
+  }
 
-  function openProfile() {
+  /* ── Open ── */
+  async function openProfile() {
     pfLastFocus = document.activeElement;
     const p = readProfile();
     pfTempAvatar = p.avatar || '🦊';
-
-    $pfAvatarBtn.textContent = pfTempAvatar;
-    $pfNameInput.value = p.name || '';
     $pfPicker.hidden = true;
 
     $pfModal.classList.add('open');
     document.body.classList.add('modal-open');
 
-    setTimeout(function () {
+    if (!p.name) {
+      // No name set — show empty state and focus input
+      $pfBody.innerHTML = renderEmptyState('');
+      attachBodyHandlers();
       $pfPickerGrid.querySelectorAll('.pf-picker-item').forEach(function (x) {
         x.classList.toggle('selected', x.dataset.avatar === pfTempAvatar);
       });
-      $pfNameInput.focus({ preventScroll: true });
-    }, 250);
-
-    if (p.name) loadMyStats(p.name);
-    else {
-      $pfStatsList.innerHTML = '<div class="pf-stats-empty">ثبت کن تا رکوردهات اینجا نمایش داده بشه</div>';
-      $pfStatsTotal.textContent = '';
+      setTimeout(function () {
+        const inp = $pfBody.querySelector('#pfNameInput');
+        if (inp) inp.focus({ preventScroll: true });
+      }, 220);
+      return;
     }
+
+    // Loading
+    $pfBody.innerHTML = '<div class="pf-loading"><div class="pf-spinner"></div>در حال بارگذاری...</div>';
+
+    const data = await fetchProfile(p.name);
+
+    if (data && data.error) {
+      $pfBody.innerHTML = `
+        <div class="pf-empty">
+          <span class="pf-empty-icon">⚠️</span>
+          <div class="pf-empty-title">ارتباط با سرور برقرار نشد</div>
+          <div class="pf-empty-desc">بعداً دوباره امتحان کن</div>
+        </div>
+        <div class="pf-edit">
+          <label class="pf-label">
+            <span>اسم بازیکن</span>
+            <input type="text" id="pfNameInput" maxlength="20" value="${escapeHtml(p.name)}" autocomplete="off">
+          </label>
+          <button class="pf-save" id="pfSaveBtn" type="button">💾 ذخیره</button>
+        </div>
+      `;
+      attachBodyHandlers();
+      return;
+    }
+
+    if (!data || data.empty) {
+      $pfBody.innerHTML = renderEmptyState(p.name);
+      attachBodyHandlers();
+      $pfPickerGrid.querySelectorAll('.pf-picker-item').forEach(function (x) {
+        x.classList.toggle('selected', x.dataset.avatar === pfTempAvatar);
+      });
+      return;
+    }
+
+    pfProfileData = data;
+    renderProfile(data, false);
+
+    // Set selected avatar in picker
+    $pfPickerGrid.querySelectorAll('.pf-picker-item').forEach(function (x) {
+      x.classList.toggle('selected', x.dataset.avatar === pfTempAvatar);
+    });
+  }
+
+    async function openProfileByName(name) {
+    const myName = readProfile().name;
+    const isMe = !myName || name === myName;
+
+    pfLastFocus = document.activeElement;
+    pfTempAvatar = '🦊';
+    $pfPicker.hidden = true;
+    $pfModal.classList.add('open');
+    document.body.classList.add('modal-open');
+
+    $pfBody.innerHTML = '<div class="pf-loading"><div class="pf-spinner"></div>در حال بارگذاری...</div>';
+
+    const data = await fetchProfile(name);
+
+    if (data && data.error) {
+      $pfBody.innerHTML = `
+        <div class="pf-empty">
+          <span class="pf-empty-icon">⚠️</span>
+          <div class="pf-empty-title">ارتباط با سرور برقرار نشد</div>
+          <div class="pf-empty-desc">بعداً دوباره امتحان کن</div>
+        </div>
+      `;
+      return;
+    }
+
+    if (!data || data.empty) {
+      $pfBody.innerHTML = `
+        <div class="pf-hero">
+          <div class="pf-hero-avatar view-only">👤</div>
+          <h2 class="pf-hero-name">${escapeHtml(name)}</h2>
+          <div class="pf-hero-meta"><span>هنوز رکوردی ثبت نکرده</span></div>
+        </div>
+        <div class="pf-empty">
+          <span class="pf-empty-icon">🎮</span>
+          <div class="pf-empty-desc">این بازیکن هنوز تو هیچ بازیای شرکت نکرده</div>
+        </div>
+      `;
+      return;
+    }
+
+    pfProfileData = data;
+    pfTempAvatar = data.profile.avatar || '🦊';
+    renderProfile(data, !isMe);
   }
 
   function closeProfile() {
@@ -1686,35 +2255,57 @@ const GAME_META = {
     }
   }
 
+  /* ── Save ── */
   async function saveProfile() {
-    const name = $pfNameInput.value.trim();
+    const $nameInput = $pfBody.querySelector('#pfNameInput');
+    const $saveBtn = $pfBody.querySelector('#pfSaveBtn');
+    if (!$nameInput || !$saveBtn) return;
+
+    const name = $nameInput.value.trim();
     if (!name) {
-      $pfNameInput.focus();
-      $pfNameInput.style.borderColor = '#FF4D8F';
-      $pfNameInput.style.boxShadow = '0 0 0 4px rgba(255,77,143,0.15)';
+      $nameInput.focus();
+      $nameInput.style.borderColor = '#FF4D8F';
+      $nameInput.style.boxShadow = '0 0 0 4px rgba(255,77,143,0.15)';
       setTimeout(function () {
-        $pfNameInput.style.borderColor = '';
-        $pfNameInput.style.boxShadow = '';
+        $nameInput.style.borderColor = '';
+        $nameInput.style.boxShadow = '';
       }, 1200);
       return;
     }
 
-    $pfSaveBtn.disabled = true;
-    $pfSaveBtn.textContent = '⏳ در حال ذخیره...';
+    $saveBtn.disabled = true;
+    $saveBtn.textContent = '⏳ در حال ذخیره...';
 
     writeProfile(name, pfTempAvatar);
     syncHeader();
-    await loadMyStats(name);
 
-    $pfSaveBtn.disabled = false;
-    $pfSaveBtn.textContent = '✓ ذخیره شد';
+    // Re-fetch and re-render
+    const data = await fetchProfile(name);
 
-    setTimeout(function () {
-      $pfSaveBtn.textContent = '💾 ذخیره';
-      closeProfile();
-    }, 900);
+    if (data && !data.empty && !data.error) {
+      pfProfileData = data;
+      renderProfile(data);
+    } else {
+      $pfBody.innerHTML = renderEmptyState(name);
+      attachBodyHandlers();
+    }
+
+    // Update picker selected
+    $pfPickerGrid.querySelectorAll('.pf-picker-item').forEach(function (x) {
+      x.classList.toggle('selected', x.dataset.avatar === pfTempAvatar);
+    });
+
+    // Feedback
+    const newSaveBtn = $pfBody.querySelector('#pfSaveBtn');
+    if (newSaveBtn) {
+      newSaveBtn.textContent = '✓ ذخیره شد';
+      setTimeout(function () {
+        if (newSaveBtn) newSaveBtn.textContent = '💾 ذخیره';
+      }, 1200);
+    }
   }
 
+  /* ── Events ── */
   $profileBtn.addEventListener('click', openProfile);
   $wbOpenProfile.addEventListener('click', openProfile);
 
@@ -1725,32 +2316,18 @@ const GAME_META = {
     });
   });
 
-  $pfAvatarBtn.addEventListener('click', function () {
-    $pfPicker.hidden = false;
-    const sel = $pfPickerGrid.querySelector('.pf-picker-item.selected');
-    if (sel && sel.scrollIntoView) sel.scrollIntoView({ block: 'center' });
-  });
-
   $pfPickerClose.addEventListener('click', function () {
     $pfPicker.hidden = true;
   });
 
-  $pfSaveBtn.addEventListener('click', saveProfile);
-  $pfNameInput.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') { e.preventDefault(); saveProfile(); }
-  });
-
-  /* Escape برای بستن هر مودال */
   window.addEventListener('keydown', function (e) {
     if (e.key !== 'Escape') return;
-
     if ($pfModal.classList.contains('open')) {
       if (!$pfPicker.hidden) { $pfPicker.hidden = true; return; }
       e.preventDefault();
       closeProfile();
       return;
     }
-
     if ($modal.classList.contains('open')) {
       e.preventDefault();
       closeModal();
@@ -1759,7 +2336,6 @@ const GAME_META = {
 
   buildPicker();
   syncHeader();
-
 
   /* ══════════════════════════════════════════
      ۶) PWA — Service Worker + Install
